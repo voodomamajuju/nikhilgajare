@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>How to Measure </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Fonts (same as other pages) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@500;700&display=swap"
+        rel="stylesheet" />
+
+    <!--  shared styles -->
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        /* Small additions for the video block */
+        .video-wrap {
+            margin-top: 1rem;
+        }
+
+        .video {
+            width: 100%;
+            max-width: 760px;
+            display: block;
+            margin-inline: auto;
+            border: 1.5px solid var(--gold);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            background: #fff;
+        }
+
+        .caption {
+            text-align: center;
+            font-style: italic;
+            margin-top: 0.5rem;
+            color: var(--text);
+            opacity: 0.9;
+        }
+
+        .actions.center {
+            display: flex;
+            justify-content: center;
+            margin-top: 1.25rem;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="page">
+        <section class="card" aria-labelledby="title">
+            <header class="header">
+                <div class="brand">
+                    <span class="brand-script"></span>
+                </div>
+                <h2 class="measure-heading">How to take your measurements?</h2>
+                <p class="subtitle">(Please watch this before filling your measurements)</p>
+            </header>
+
+            <div class="video-wrap">
+                <video class="video-vertical" controls preload="metadata" poster="measurements-poster.jpg">
+                    <source src="measurements_fin.mp4" type="video/mp4" />
+                    Your browser does not support the video tag.
+                </video>
+
+                <div class="actions center">
+                    <a class="btn" href="measurements.html">Continue to Measurements</a>
+                </div>
+        </section>
+    </main>
+
+</body>
+
+</html>
