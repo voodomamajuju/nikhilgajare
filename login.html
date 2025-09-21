@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Model Management</title>
+  <link rel="stylesheet" href="login.css">
+</head>
+<body>
+  <div class="login-container">
+    <h1>Sign In</h1>
+    <p class="subtitle">Access your account</p>
+    
+    <div class="auth-section">
+      <button id="googleSignIn" class="auth-btn google">
+        <span class="icon">🔍</span>
+        Sign in with Google
+      </button>
+      
+      <div class="divider">
+        <span>or</span>
+      </div>
+      
+      <form id="emailForm" class="email-form">
+        <input type="email" id="email" placeholder="Enter your email" required>
+        <input type="password" id="password" placeholder="Enter your password" required>
+        <button type="submit" class="auth-btn email">Sign In</button>
+      </form>
+      
+      <div class="auth-links">
+        <button id="signUpToggle" class="link-btn">Don't have an account? Sign Up</button>
+        <a href="admin-link.html" class="link-btn">Admin Access</a>
+        <button id="logoutBtn" class="link-btn logout" style="display: none;">Logout & Clear Session</button>
+      </div>
+    </div>
+    
+    <div id="status" class="status-message"></div>
+  </div>
+
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+    import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    console.log("✅ Supabase client initialized");
+    console.log('supabase auth API:', 
+      !!supabase?.auth?.signInWithPassword ? 'v2' : 
+      !!supabase?.auth?.signIn ? 'v1' : 
+      'unknown'
+    );
+    
+    // Clear any existing session data on login page load
+    console.log('🧹 Clearing session data on login page load');
+    sessionStorage.removeItem('userRole');
+
+    async function redirectToApp() {
+      // For regular users, check if they have an existing submission
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          // Check if user has an existing submission
+          const { data: submission, error } = await supabase
+            .from('submissions')
+            .select('*')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          
+          if (submission && !error) {
+            console.log('📋 User has existing submission, redirecting to submission details');
+            // Redirect to a submission details/edit page
+            window.location.href = 'submission-details.html';
+          } else {
+            console.log('📝 No existing submission, redirecting to main form');
+            // No existing submission, redirect to main form
+            window.location.href = 'index.html';
+          }
+        } else {
+          // Fallback to main form
+          window.location.href = 'index.html';
+        }
+      } catch (error) {
+        console.error('❌ Error checking existing submission:', error);
+        // Fallback to main form on error
+        window.location.href = 'index.html';
+      }
+    }
+
+    function showStatus(message, isError = false) {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = `status-message ${isError ? 'error' : 'success'}`;
+      status.style.display = 'block';
+    }
+    
+    // Check if user is already logged in
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      // Show logout button
+      document.getElementById('logoutBtn').style.display = 'block';
+      
+      // Only auto-redirect if not coming from thank you page
+      const urlParams = new URLSearchParams(window.location.search);
+      if (!urlParams.get('from') === 'thankyou') {
+        // Check if this is an admin by email
+        const userEmail = session.user.email;
+        console.log('🔍 Checking user email:', userEmail);
+        
+        if (userEmail === 'admin@example.com' || userEmail === 'nikhil.dg2003@gmail.com') {
+          console.log('🔄 Admin email detected, redirecting to admin.html');
+          sessionStorage.setItem('userRole', 'admin');
+          window.location.href = 'admin.html';
+        } else {
+          console.log('👤 Regular user detected, checking submission');
+          sessionStorage.setItem('userRole', 'user');
+          await redirectToApp();
+        }
+      }
+    }
+
+
+    // Listen for auth changes
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔍 Auth state changed:', event, session?.user?.email);
+      if (event === 'SIGNED_IN' && session) {
+        console.log('✅ User signed in, redirecting...');
+        // Check if this is an admin login by email
+        const userEmail = session.user.email;
+        if (userEmail === 'admin@example.com' || userEmail === 'nikhil.dg2003@gmail.com') {
+          console.log('🔄 Admin email detected, redirecting to admin.html');
+          sessionStorage.setItem('userRole', 'admin');
+          window.location.href = 'admin.html';
+        } else {
+          console.log('👤 Regular user detected, checking for existing submission');
+          sessionStorage.setItem('userRole', 'user');
+          await redirectToApp();
+        }
+      } else if (event === 'SIGNED_OUT') {
+        console.log('👋 User signed out');
+        // Clear user role on logout
+        sessionStorage.removeItem('userRole');
+        document.getElementById('logoutBtn').style.display = 'none';
+      }
+    });
+
+
+    // Google OAuth
+    document.getElementById("googleSignIn").addEventListener("click", async () => {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin + "/index.html"
+        }
+      });
+      if (error) {
+        showStatus("Google sign-in failed: " + error.message, true);
+      }
+    });
+
+
+    // Logout button
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      try {
+        await supabase.auth.signOut();
+        sessionStorage.clear();
+        localStorage.clear();
+        showStatus("Logged out successfully! Session cleared.", false);
+        document.getElementById('logoutBtn').style.display = 'none';
+        console.log('✅ Logout completed, session cleared');
+      } catch (error) {
+        console.error('❌ Logout error:', error);
+        showStatus("Logout failed: " + error.message, true);
+      }
+    });
+
+    // Sign up/Sign in toggle
+    document.getElementById("signUpToggle").addEventListener("click", () => {
+      const submitBtn = document.querySelector(".email-form .auth-btn");
+      const isCurrentlySignUp = submitBtn.textContent === "Sign Up";
+      
+      if (isCurrentlySignUp) {
+        submitBtn.textContent = "Sign In";
+        document.getElementById("signUpToggle").textContent = "Don't have an account? Sign Up";
+      } else {
+        submitBtn.textContent = "Sign Up";
+        document.getElementById("signUpToggle").textContent = "Already have an account? Sign In";
+      }
+    });
+
+    // Email/Password authentication
+    document.getElementById("emailForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const submitBtnText = document.querySelector(".email-form .auth-btn").textContent;
+      const isSignUp = submitBtnText === "Sign Up";
+
+      console.log('🔍 Auth attempt:', { 
+        email, 
+        isSignUp, 
+        toggleText: document.getElementById("signUpToggle").textContent,
+        submitBtnText 
+      });
+
+      try {
+        if (isSignUp) {
+          // Allow sign up for regular users - redirect to main form
+          const { data, error } = await supabase.auth.signUp({ email, password });
+          if (error) throw error;
+          showStatus("Sign up successful! Redirecting to form...");
+          
+          // Direct redirect to index.html for sign up
+          setTimeout(() => {
+            console.log('🎉 Sign up completed, redirecting to index.html');
+            window.location.href = 'index.html';
+          }, 1000);
+        } else {
+          // Sign in - redirect to existing submission or main form
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          showStatus("Sign in successful! Redirecting...");
+          // The redirect will be handled by the auth state change listener
+        }
+      } catch (error) {
+        console.error('❌ Auth error:', error);
+        showStatus("Authentication failed: " + error.message, true);
+      }
+    });
+  </script>
+</body>
+</html>

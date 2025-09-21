@@ -1,8 +1,9 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
-  <title>Custom Fit Form — Step 2</title>
+  <title>Custom Fit Form — Step 2: Measurements</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -17,114 +18,73 @@
   <main class="page">
     <section class="card" aria-labelledby="title">
       <header class="header">
-        <h1 class="measure-heading">Watch the instructions video carefully before filling the form</h1>
-        <p class="subtitle">Your information is safe with our team</p>
+        <div class="brand">
+          <span class="brand-script">Nikhil Gajare</span>
+        </div>
+        <h1 id="title" class="title">Measurements</h1>
+        <p class="subtitle">Please fill in your measurements carefully.</p>
       </header>
 
-      <!-- Give the form an id so JS can find it -->
       <form id="measureForm" class="form" novalidate>
-        <div class="grid">
-          <div class="field">
-            <label for="chest" class="label">Chest (inches)</label>
-            <input id="chest" name="chest" type="number" step="0.1" min="0" inputmode="decimal" placeholder="e.g., 36.5"
-              class="input" required />
-          </div>
-
-          <div class="field">
-            <label for="bust" class="label">Bust (inches)</label>
-            <input id="bust" name="bust" type="number" step="0.1" min="0" inputmode="decimal" placeholder="e.g., 34.0"
-              class="input" required />
-          </div>
-
-          <div class="field">
-            <label for="waist" class="label">Waist (inches)</label>
-            <input id="waist" name="waist" type="number" step="0.1" min="0" inputmode="decimal" placeholder="e.g., 26.0"
-              class="input" required />
-          </div>
-
-          <div class="field">
-            <label for="hips" class="label">Hips (inches)</label>
-            <input id="hips" name="hips" type="number" step="0.1" min="0" inputmode="decimal" placeholder="e.g., 38.0"
-              class="input" required />
-          </div>
-
-          <div class="field">
-            <label for="age" class="label">Age</label>
-            <input id="age" name="age" type="number" step="1" min="17" inputmode="numeric" placeholder="e.g., 22"
-              class="input" required />
-          </div>
-
-          <div class="field">
-            <span class="label" id="height-label">Height</span>
-            <div class="split" role="group" aria-labelledby="height-label">
-              <div class="split-item">
-                <input id="height-feet" name="height_feet" type="number" min="0" max="8" step="1" inputmode="numeric"
-                  placeholder="5" class="input" aria-label="Height in feet" required />
-                <span class="unit">ft</span>
-              </div>
-              <div class="split-item">
-                <input id="height-inches" name="height_inches" type="number" min="0" max="11" step="1"
-                  inputmode="numeric" placeholder="6" class="input" aria-label="Height in inches" required />
-                <span class="unit">in</span>
-              </div>
-            </div>
-          </div>
+        <div class="field">
+          <label for="chest" class="label">Chest (inches)</label>
+          <input id="chest" name="chest" type="number" min="20" max="60" step="0.5"
+            placeholder="e.g. 34" class="input" required />
         </div>
 
-        <div class="actions center">
+        <div class="field">
+          <label for="bust" class="label">Bust (inches)</label>
+          <input id="bust" name="bust" type="number" min="20" max="60" step="0.5"
+            placeholder="e.g. 34" class="input" required />
+        </div>
+
+        <div class="field">
+          <label for="waist" class="label">Waist (inches)</label>
+          <input id="waist" name="waist" type="number" min="18" max="50" step="0.5"
+            placeholder="e.g. 26" class="input" required />
+        </div>
+
+        <div class="field">
+          <label for="hips" class="label">Hips (inches)</label>
+          <input id="hips" name="hips" type="number" min="28" max="70" step="0.5"
+            placeholder="e.g. 36" class="input" required />
+        </div>
+
+        <div class="field">
+          <label for="height_feet" class="label">Height — Feet</label>
+          <input id="height_feet" name="height_feet" type="number" min="3" max="7"
+            placeholder="e.g. 5" class="input" required />
+        </div>
+
+        <div class="field">
+          <label for="height_inches" class="label">Height — Inches</label>
+          <input id="height_inches" name="height_inches" type="number" min="0" max="11"
+            placeholder="e.g. 6" class="input" required />
+        </div>
+
+        <div class="field">
+          <label for="age" class="label">Age</label>
+          <input id="age" name="age" type="number" min="13" max="100"
+            placeholder="e.g. 24" class="input" required />
+        </div>
+
+        <div class="actions">
           <button type="submit" class="btn">Save Measurements</button>
         </div>
       </form>
 
+      <!-- feedback + link to next step -->
+      <p id="savedNotice" class="subtitle" style="display:none; color:green;">Measurements saved!</p>
       <!-- Hidden link that appears after save -->
       <div class="actions center" style="margin-top:0.8rem;">
         <a id="uploadLink" class="btn" href="picturesupload.html" style="display:none;">Upload your pictures</a>
       </div>
 
-      <p id="savedNotice" class="thanks" style="display:none;margin-top:1rem;">✅ Measurements saved locally.</p>
     </section>
   </main>
 
-  <script>
-    // Hook form
-    document.getElementById("measureForm").addEventListener("submit", e => {
-      e.preventDefault();
-      const fd = new FormData(e.target);
-
-      // read saved contact data from index.html (if any)
-      const saved = JSON.parse(localStorage.getItem("formData")) || {};
-
-      // Merge measurements (use numbers where appropriate)
-      Object.assign(saved, {
-        chest: fd.get("chest") ? parseFloat(fd.get("chest")) : null,
-        bust: fd.get("bust") ? parseFloat(fd.get("bust")) : null,
-        waist: fd.get("waist") ? parseFloat(fd.get("waist")) : null,
-        hips: fd.get("hips") ? parseFloat(fd.get("hips")) : null,
-        height_feet: fd.get("height_feet") ? parseInt(fd.get("height_feet"), 10) : null,
-        height_inches: fd.get("height_inches") ? parseInt(fd.get("height_inches"), 10) : null,
-        age: fd.get("age") ? parseInt(fd.get("age"), 10) : null,
-        saved_at: new Date().toISOString()
-      });
-
-      // Save back to localStorage
-      localStorage.setItem("formData", JSON.stringify(saved));
-
-      // UI feedback: show upload link & saved notice
-      document.getElementById("uploadLink").style.display = "inline-block";
-      const notice = document.getElementById("savedNotice");
-      notice.style.display = "block";
-
-      // optional small scroll to the upload link
-      document.getElementById("uploadLink").scrollIntoView({ behavior: "smooth", block: "center" });
-    });
-
-    // If user has already filled measurements earlier, reveal link automatically
-    (function autoRevealIfSaved() {
-      const saved = JSON.parse(localStorage.getItem("formData") || "{}");
-      if (saved && (saved.chest || saved.bust || saved.waist || saved.hips)) {
-        document.getElementById("uploadLink").style.display = "inline-block";
-      }
-    })();
-  </script>
+  <!-- External module script -->
+  <script type="module" src="measurements.js"></script>
 </body>
+
 </html>

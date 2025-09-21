@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Model Details</title>
+  <link rel="stylesheet" href="admin.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2 class="logo">Discover</h2>
+      </div>
+      <ul class="sidebar-menu">
+        <li><a href="admin.html"><span class="material-icons-sharp">dashboard</span>Dashboard</a></li>
+        <li><a href="admin.html" class="active"><span class="material-icons-sharp">group</span>Models</a></li>
+        <!-- Removed Settings -->
+        <li><a href="#" onclick="handleModelDetailsLogout()"><span class="material-icons-sharp">logout</span>Logout</a></li>
+      </ul>
+    </aside>
+
+    <main id="details-content" class="main-content" style="opacity: 0; transition: opacity 0.5s;">
+      <!-- Added markup for model name -->
+      <h1 id="model-name">Loading...</h1>
+    </main>
+  </div>
+
+  <!-- module for profile page -->
+  <script type="module" src="modeldetails.js"></script>
+  
+        <script type="module">
+          // Global model details logout function
+          async function handleModelDetailsLogout() {
+            console.log('🔑 handleModelDetailsLogout called');
+            try {
+              // Import config and Supabase client
+              const config = await import('./config.js');
+              const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
+              const supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+              
+              const { error } = await supabase.auth.signOut();
+              if (error) {
+                console.error('❌ Model details logout error:', error);
+                alert('Logout failed: ' + error.message);
+              } else {
+                console.log('✅ Model details signed out successfully');
+                sessionStorage.removeItem('userRole');
+                window.location.href = 'login.html';
+              }
+            } catch (err) {
+              console.error('❌ Model details logout failed:', err);
+              sessionStorage.removeItem('userRole');
+              window.location.href = 'login.html';
+            }
+          }
+          
+          // Make handleModelDetailsLogout available globally
+          window.handleModelDetailsLogout = handleModelDetailsLogout;
+        </script>
+</body>
+</html>
+8

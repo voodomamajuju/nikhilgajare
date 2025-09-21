@@ -1,8 +1,9 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
-  <title>Custom Fit Form — Step 1</title>
+  <title>Model Management System — Submit Your Information</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -12,11 +13,11 @@
 
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Supabase SDK (defer so it loads before scripts that use it) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  
 </head>
 
 <body>
+
   <main class="page">
     <section class="card" aria-labelledby="title">
       <header class="header">
@@ -25,6 +26,7 @@
         </div>
         <h1 id="title" class="title">Model Database</h1>
         <p class="subtitle">Contact Details</p>
+        
       </header>
 
       <!-- Single contact form (we use JS to save to localStorage and navigate) -->
@@ -40,25 +42,31 @@
           <input id="insta" name="insta" type="text" class="input" placeholder="@yourusername"
             pattern="^@?[A-Za-z0-9._]{1,30}$"
             title="Instagram ID can start with @ and may only contain letters, numbers, periods, and underscores (max 30 characters)"
-            required autocomplete="on" />
+            required autocomplete="username" />
         </div>
 
         <div class="field">
           <label for="whatsapp" class="label">WhatsApp Number</label>
-          <input id="whatsapp" name="whatsapp" type="tel" placeholder="+91 98765 43210"
-            pattern="[0-9+\-\s]{7,15}" class="input" required />
+          <input id="whatsapp" name="whatsapp" type="tel" placeholder="+91 98765 43210" pattern="[0-9+\-\s]{7,15}"
+            class="input" required />
+        </div>
+
+        <div class="field">
+          <label for="email" class="label">Email Address</label>
+          <input id="email" name="email" type="email" placeholder="your.email@example.com" class="input"
+            required autocomplete="email" />
         </div>
 
         <div class="field">
           <label for="city" class="label">City</label>
-          <input id="city" name="city" type="text" placeholder="Place of residence" class="input"
-            inputmode="text" required autocomplete="off" />
+          <input id="city" name="city" type="text" placeholder="Place of residence" class="input" inputmode="text"
+            required autocomplete="off" />
         </div>
 
         <div class="field">
           <label for="landmark" class="label">Landmark</label>
-          <input id="landmark" name="landmark" type="text" placeholder="Nearest landmark" class="input"
-            inputmode="text" required autocomplete="off" />
+          <input id="landmark" name="landmark" type="text" placeholder="Nearest landmark" class="input" inputmode="text"
+            required autocomplete="off" />
         </div>
 
         <div class="actions">
@@ -68,40 +76,13 @@
     </section>
   </main>
 
-  <!-- Optional: create a single global Supabase client if you will use it on this page.
-       If not needed here, you can remove this script block. -->
-  <script>
-    // Run after the SDK loads
-    document.addEventListener('DOMContentLoaded', () => {
-      if (!window.supabaseClient && window.supabase) {
-        // Replace "YOUR_ANON_KEY" only locally for testing. For production, use env vars on deploy.
-        window.supabaseClient = window.supabase.createClient(
-          "https://jjsimjaismmwmxjhnmlz.supabase.co",
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impqc2ltamFpc21td214amhubWx6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NDM2NjIsImV4cCI6MjA3MjMxOTY2Mn0.zIUfmYhdPgaHxybM10IfSemXwUWAv7SUstqD-Yf38bE"
-        );
-        console.log('Global Supabase client ready');
-      }
-    });
-  </script>
+  <!-- Supabase SDK (defer so it defines window.supabase) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 
-  <!-- Save contact to localStorage and go to measurements.html -->
-  <script>
-    document.getElementById("contactForm").addEventListener("submit", e => {
-      e.preventDefault();
-      const fd = new FormData(e.target);
+  <!-- contact logic (ES module) -->
+  <script type="module" src="contact.js"></script>
 
-      // Save data in localStorage
-      localStorage.setItem("formData", JSON.stringify({
-        name: fd.get("name"),
-        insta: fd.get("insta"),
-        whatsapp: fd.get("whatsapp"),
-        city: fd.get("city"),
-        landmark: fd.get("landmark")
-      }));
 
-      // Navigate to measurements page
-      window.location.href = "instructions.html";
-    });
-  </script>
 </body>
+
 </html>

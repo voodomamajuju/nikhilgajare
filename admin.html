@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="admin.css" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet" />
+
+  <!-- Minimal local styles for badges & clear button -->
+  <style>
+    .controls-row { display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; }
+    .clear-btn {
+      border: 1px solid #ccc;
+      background: #fff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight:600;
+    }
+    .clear-btn[hidden]{ display:none; }
+    .match-badges { display:inline-flex; gap:6px; margin-left:8px; vertical-align:middle; }
+    .badge {
+      font-size: .7rem;
+      padding: 4px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,0.08);
+      background: rgba(0,0,0,0.04);
+      text-transform:uppercase;
+      letter-spacing:.6px;
+    }
+    #filter-hint { transition: opacity .15s ease; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2 class="logo">Discover</h2>
+      </div>
+      <ul class="sidebar-menu">
+        <li><a href="#" class="active"><span class="material-icons-sharp">dashboard</span>Dashboard</a></li>
+        <li><a href="models.html"><span class="material-icons-sharp">group</span>Models</a></li>
+        <li><a href="#" onclick="handleAdminLogout()"><span class="material-icons-sharp">logout</span>Logout</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <h1>Model Directory</h1>
+      <p class="page-description">Click on a row to see full details about the model.</p>
+
+      <!-- FILTER CONTROLS -->
+      <div class="model-finder">
+        <h2>Filter Models</h2>
+        <p style="margin-bottom:12px;color:#777;font-size:.9rem;">Enter target measurements (in inches)</p>
+
+        <div class="filter-controls controls-row">
+
+          <div class="input-group">
+            <label for="chest">Chest</label>
+            <input id="chest" type="number" placeholder="e.g. 34" />
+          </div>
+
+          <div class="input-group">
+            <label for="bust">Bust</label>
+            <input id="bust" type="number" placeholder="e.g. 34" />
+          </div>
+
+          <div class="input-group">
+            <label for="waist">Waist</label>
+            <input id="waist" type="number" placeholder="e.g. 26" />
+          </div>
+
+          <div class="input-group">
+            <label for="hips">Hips</label>
+            <input id="hips" type="number" placeholder="e.g. 36" />
+          </div>
+
+          <div class="input-group">
+            <label style="opacity:.65;font-size:.85rem">Total model signup</label>
+            <div id="totalCount" style="font-weight:600;font-size:1.1rem;">—</div>
+          </div>
+
+          <div style="display:flex;gap:10px;align-items:flex-end;">
+            <button id="applyBtn" class="clear-btn" style="background:#1e88e5;color:#fff;border-color:#1e88e5;">Apply filter</button>
+            <button id="clearBtn" class="clear-btn" hidden>Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Message area: errors, loading, empty state -->
+      <div id="messageArea" aria-live="polite" style="margin:18px 0; color:#555;"></div>
+
+      <!-- TABLE (hidden by default) -->
+      <div class="table-container" id="resultsContainer" style="display:none;">
+        <table class="responsive-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>City</th>
+              <th>Landmark</th>
+              <th>Bust</th>
+              <th>Chest</th>
+              <th>Waist</th>
+              <th>Hips</th>
+              <th>Saved At</th>
+            </tr>
+          </thead>
+          <tbody id="models-table-body"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <div id="details-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="modal-close-btn">&times;</span>
+      <div id="modal-body-content"></div>
+    </div>
+  </div>
+
+  <script type="module" src="admin.js"></script>
+  
+        <script type="module">
+          // Global admin logout function
+          async function handleAdminLogout() {
+            console.log('🔑 handleAdminLogout called');
+            try {
+              // Import config and Supabase client
+              const config = await import('./config.js');
+              const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
+              const supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+              
+              const { error } = await supabase.auth.signOut();
+              if (error) {
+                console.error('❌ Admin logout error:', error);
+                alert('Logout failed: ' + error.message);
+              } else {
+                console.log('✅ Admin signed out successfully');
+                sessionStorage.removeItem('userRole');
+                window.location.href = 'login.html';
+              }
+            } catch (err) {
+              console.error('❌ Admin logout failed:', err);
+              sessionStorage.removeItem('userRole');
+              window.location.href = 'login.html';
+            }
+          }
+          
+          // Make handleAdminLogout available globally
+          window.handleAdminLogout = handleAdminLogout;
+        </script>
+</body>
+
+</html>

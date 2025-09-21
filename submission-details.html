@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Submission - Model Management System</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .submission-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .submission-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .submission-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .submission-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .info-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--rose);
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: var(--rose);
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .info-value {
+            color: #333;
+            font-size: 1rem;
+        }
+        
+        .photos-section {
+            margin: 30px 0;
+        }
+        
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .photo-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .photo-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .status-section {
+            background: #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+        
+        .status-submitted {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-working {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-not-working {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            min-width: 140px;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,123,255,0.3);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(108,117,125,0.3);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(40,167,69,0.3);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .no-submission {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .no-submission h2 {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .submission-container {
+                padding: 10px;
+            }
+            
+            .submission-card {
+                padding: 20px;
+            }
+            
+            .submission-info {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .photos-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 10px;
+            }
+            
+            .actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="submission-container">
+        
+        <div id="loading" class="loading">
+            <p>Loading your submission...</p>
+        </div>
+        
+        <div id="error" class="error" style="display: none;">
+            <h3>Error Loading Submission</h3>
+            <p id="errorMessage"></p>
+        </div>
+        
+        <div id="noSubmission" class="no-submission" style="display: none;">
+            <h2>No Submission Found</h2>
+            <div class="actions">
+                <a href="index.html" class="btn btn-primary">Create New Submission</a>
+            </div>
+        </div>
+        
+        <div id="submissionContent" style="display: none;">
+            <div class="submission-card">
+                <div class="submission-info" id="submissionInfo">
+                    <!-- Submission details will be populated here -->
+                </div>
+                
+                <div class="photos-section" id="photosSection" style="display: none;">
+                    <h3>Photos</h3>
+                    <div class="photos-grid" id="photosGrid">
+                        <!-- Photos will be populated here -->
+                    </div>
+                </div>
+                
+                
+                <div class="actions">
+                    <button id="editBtn" class="btn btn-primary">Edit Submission</button>
+                    <button id="logoutBtn" class="btn btn-success">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+        
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let currentSubmission = null;
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadSubmission();
+            attachEventListeners();
+        });
+        
+        async function loadSubmission() {
+            try {
+                // Check if user is authenticated
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    showError('You must be logged in to view your submission.');
+                    return;
+                }
+                
+                // Fetch user's submission
+                const { data: submission, error } = await supabase
+                    .from('submissions')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+                
+                if (error) {
+                    console.error('Error fetching submission:', error);
+                    showError('Failed to load your submission. Please try again.');
+                    return;
+                }
+                
+                if (!submission) {
+                    showNoSubmission();
+                    return;
+                }
+                
+                currentSubmission = submission;
+                displaySubmission(submission);
+                
+            } catch (error) {
+                console.error('Unexpected error:', error);
+                showError('An unexpected error occurred. Please try again.');
+            }
+        }
+        
+        function displaySubmission(submission) {
+            // Hide loading, show content
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('submissionContent').style.display = 'block';
+            
+            // Display submission info
+            const infoContainer = document.getElementById('submissionInfo');
+            infoContainer.innerHTML = `
+                <div class="info-item">
+                    <div class="info-label">Name</div>
+                    <div class="info-value">${submission.name || 'Not provided'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">${submission.email || 'Not provided'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Instagram</div>
+                    <div class="info-value">${submission.insta || 'Not provided'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">WhatsApp</div>
+                    <div class="info-value">${submission.whatsapp || 'Not provided'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">City</div>
+                    <div class="info-value">${submission.city || 'Not provided'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Landmark</div>
+                    <div class="info-value">${submission.landmark || 'Not provided'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Age</div>
+                    <div class="info-value">${submission.age || 'Not provided'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Height</div>
+                    <div class="info-value">${submission.height_feet || 0}'${submission.height_inches || 0}"</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Chest</div>
+                    <div class="info-value">${submission.chest || 'Not provided'}"</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Bust</div>
+                    <div class="info-value">${submission.bust || 'Not provided'}"</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Waist</div>
+                    <div class="info-value">${submission.waist || 'Not provided'}"</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Hips</div>
+                    <div class="info-value">${submission.hips || 'Not provided'}"</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Glam Makeup</div>
+                    <div class="info-value">${submission.glam_makeup ? 'Yes' : 'No'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Submitted</div>
+                    <div class="info-value">${new Date(submission.saved_at).toLocaleDateString()}</div>
+                </div>
+            `;
+            
+            // Display photos if any
+            if (submission.photo_paths && submission.photo_paths.length > 0) {
+                displayPhotos(submission.photo_paths);
+            }
+            
+        }
+        
+        function displayPhotos(photoPaths) {
+            const photosSection = document.getElementById('photosSection');
+            const photosGrid = document.getElementById('photosGrid');
+            
+            photosGrid.innerHTML = '';
+            
+            photoPaths.forEach((path, index) => {
+                const photoItem = document.createElement('div');
+                photoItem.className = 'photo-item';
+                
+                const img = document.createElement('img');
+                img.src = `${SUPABASE_URL}/storage/v1/object/public/uploads/${path}`;
+                img.alt = `Photo ${index + 1}`;
+                img.onerror = () => {
+                    img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4=';
+                };
+                
+                photoItem.appendChild(img);
+                photosGrid.appendChild(photoItem);
+            });
+            
+            photosSection.style.display = 'block';
+        }
+        
+        
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+        }
+        
+        function showNoSubmission() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('noSubmission').style.display = 'block';
+        }
+        
+        function attachEventListeners() {
+            // Edit button
+            document.getElementById('editBtn').addEventListener('click', () => {
+                if (currentSubmission) {
+                    // Store submission data and redirect to main form for editing
+                    sessionStorage.setItem('editingSubmission', JSON.stringify(currentSubmission));
+                    window.location.href = 'index.html';
+                }
+            });
+            
+            // Logout button
+            document.getElementById('logoutBtn').addEventListener('click', async () => {
+                try {
+                    await supabase.auth.signOut();
+                    window.location.href = 'login.html';
+                } catch (error) {
+                    console.error('Logout error:', error);
+                }
+            });
+        }
+        
+        // Handle logout from other pages
+        window.handleSubmissionDetailsLogout = async function() {
+            try {
+                await supabase.auth.signOut();
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        };
+    </script>
+</body>
+</html>
