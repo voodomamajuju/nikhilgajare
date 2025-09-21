@@ -251,7 +251,7 @@ function showEditForm() {
           <div id="existing-photos" class="existing-photos-grid">
             ${submission.photo_paths.map((path, index) => `
               <div class="existing-photo-item">
-                <img src="${supabaseClient?.supabaseUrl || 'https://jjsimjaismmwmxjhnmlz.supabase.co'}/storage/v1/object/public/uploads/${path}" 
+                <img src="${supabaseClient?.supabaseUrl || SUPABASE_URL}/storage/v1/object/public/uploads/${path}" 
                      alt="Photo ${index + 1}" 
                      onerror="this.src='my-background.jpg'">
                 <button class="remove-photo-btn" onclick="removePhoto(${index})">❌</button>
