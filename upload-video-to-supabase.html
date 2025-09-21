@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Video to Supabase</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        .upload-area { border: 2px dashed #ccc; padding: 20px; text-align: center; margin: 20px 0; }
+        .upload-area.dragover { border-color: #007bff; background-color: #f8f9fa; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 20px; padding: 10px; background: #f8f9fa; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>Upload Video to Supabase Storage</h1>
+    
+    <div class="upload-area" id="uploadArea">
+        <p>Drag and drop your video file here, or click to select</p>
+        <input type="file" id="fileInput" accept="video/*" style="display: none;">
+        <button onclick="document.getElementById('fileInput').click()">Select Video File</button>
+    </div>
+    
+    <div id="result"></div>
+
+    <script type="module">
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.public.js";
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const result = document.getElementById('result');
+
+        // Create videos bucket if it doesn't exist
+        async function createBucket() {
+            const { data, error } = await supabase.storage.createBucket('videos', {
+                public: true,
+                fileSizeLimit: 100 * 1024 * 1024 // 100MB
+            });
+            
+            if (error && error.message.includes('already exists')) {
+                console.log('Videos bucket already exists');
+            } else if (error) {
+                console.error('Error creating bucket:', error);
+            } else {
+                console.log('Videos bucket created successfully');
+            }
+        }
+
+        // Upload file
+        async function uploadFile(file) {
+            try {
+                result.innerHTML = '<div class="result">Uploading... Please wait (this may take a while for large files).</div>';
+                
+                const fileName = `measurements_guide_${Date.now()}.mp4`;
+                const { data, error } = await supabase.storage
+                    .from('videos')
+                    .upload(fileName, file);
+
+                if (error) throw error;
+
+                // Get public URL
+                const { data: urlData } = supabase.storage
+                    .from('videos')
+                    .getPublicUrl(fileName);
+
+                result.innerHTML = `
+                    <div class="result success">
+                        <h3>✅ Upload Successful!</h3>
+                        <p><strong>Video URL:</strong> ${urlData.publicUrl}</p>
+                        <p><strong>File Name:</strong> ${fileName}</p>
+                        <p><em>Copy this URL and update your instructions.html file</em></p>
+                    </div>
+                `;
+
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Upload Failed</h3>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                uploadFile(file);
+            }
+        });
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('video/')) {
+                uploadFile(file);
+            } else {
+                result.innerHTML = '<div class="result error">Please select a video file.</div>';
+            }
+        });
+
+        // Initialize
+        createBucket();
+    </script>
+</body>
+</html>
