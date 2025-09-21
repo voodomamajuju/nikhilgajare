@@ -1,5 +1,5 @@
 // contact.js (type="module")
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.public.js';
 
 // Create supabase client if SDK present and config provided
 function createSupabaseClient() {

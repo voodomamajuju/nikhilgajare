@@ -50,8 +50,8 @@ cd model-management-system
 
 ### 2. Configure Supabase
 1. Create a Supabase project at [supabase.com](https://supabase.com)
-2. Copy `config.example.js` to `config.js`
-3. Update `config.js` with your Supabase credentials:
+2. **For deployment**: The project includes `config.public.js` with your Supabase credentials (anon key is safe to be public)
+3. **For local development**: Copy `config.example.js` to `config.js` and update with your credentials
    ```javascript
    export const SUPABASE_URL = "your-supabase-url";
    export const SUPABASE_ANON_KEY = "your-anon-key";
@@ -175,7 +175,8 @@ To add more admins, update the admin email checks in the JavaScript files.
 
 ## 🔧 Configuration
 
-- Update `config.js` with your Supabase credentials
+- **For deployment**: Uses `config.public.js` (already configured)
+- **For local development**: Update `config.js` with your Supabase credentials
 - Modify admin emails in the authentication logic
 - Customize styling in the CSS files
 - Adjust form fields in the HTML files

@@ -5,7 +5,7 @@ let supabaseClient = null;
 let STORAGE_BUCKET = null;
 
 try {
-  const cfg = await import('./config.js');
+  const cfg = await import('./config.public.js');
   const { SUPABASE_URL, SUPABASE_ANON_KEY, STORAGE_BUCKET: bucket } = cfg;
   STORAGE_BUCKET = bucket || null;
 
@@ -18,7 +18,7 @@ try {
     console.error("❌ Invalid Supabase config values", { SUPABASE_URL, SUPABASE_ANON_KEY });
   }
 } catch (e) {
-  console.error("❌ Failed to initialize Supabase. Make sure config.js exists and exports SUPABASE_URL and SUPABASE_ANON_KEY.", e);
+  console.error("❌ Failed to initialize Supabase. Make sure config.public.js exists and exports SUPABASE_URL and SUPABASE_ANON_KEY.", e);
 }
 
   const qs = new URLSearchParams(window.location.search);

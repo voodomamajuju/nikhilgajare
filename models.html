@@ -386,7 +386,7 @@
             console.log('🔑 handleLogout called');
             try {
               // Import config and Supabase client
-              const config = await import('./config.js');
+              const config = await import('./config.public.js');
               const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
               const supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
               

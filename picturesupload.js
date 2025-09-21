@@ -1,7 +1,7 @@
 // picturesupload.js (type="module")
 // Externalized from inline HTML; preserves original behavior exactly.
 
-import { SUPABASE_URL, SUPABASE_ANON_KEY, STORAGE_BUCKET } from './config.js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, STORAGE_BUCKET } from './config.public.js';
 
 // Create or reuse supabase client
 function getSupabaseClient() {

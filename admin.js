@@ -6,7 +6,7 @@
 let supabaseClient = null;
 
 try {
-  const cfg = await import('./config.js');
+  const cfg = await import('./config.public.js');
   const { SUPABASE_URL, SUPABASE_ANON_KEY } = cfg;
 
   if (typeof SUPABASE_URL === 'string' && typeof SUPABASE_ANON_KEY === 'string') {
@@ -37,7 +37,7 @@ try {
     console.error("❌ Invalid Supabase config values", { SUPABASE_URL, SUPABASE_ANON_KEY });
   }
 } catch (e) {
-  console.error("❌ Failed to initialize Supabase. Make sure config.js exists and exports SUPABASE_URL and SUPABASE_ANON_KEY.", e);
+  console.error("❌ Failed to initialize Supabase. Make sure config.public.js exists and exports SUPABASE_URL and SUPABASE_ANON_KEY.", e);
 }
 
 // Demo fallback data (keep small)
