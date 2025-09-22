@@ -146,25 +146,66 @@ function renderRows(rows) {
   els.message.textContent = `${rows.length} models found`;
   els.tableContainer.style.display = '';
 
-  for (const r of rows) {
-    const tr = document.createElement('tr');
-    tr.dataset.id = r.id;
-    tr.innerHTML = `
-      <td data-label="Name">${r.name ?? ''}</td>
-      <td data-label="City" class="hide-mobile">${r.city ?? ''}</td>
-      <td data-label="Landmark" class="hide-mobile">${r.landmark ?? ''}</td>
-      <td data-label="Bust">${r.bust ?? ''}</td>
-      <td data-label="Chest">${r.chest ?? ''}</td>
-      <td data-label="Waist">${r.waist ?? ''}</td>
-      <td data-label="Hips">${r.hips ?? ''}</td>
-      <td data-label="Saved At" class="hide-mobile">${r.saved_at ? new Date(r.saved_at).toLocaleString() : ''}</td>
-    `;
-    tr.style.cursor = 'pointer';
-    tr.addEventListener('click', () => {
-      const id = tr.dataset.id;
-      window.location.href = `modeldetails.html?id=${encodeURIComponent(id)}`;
-    });
-    els.tbody.appendChild(tr);
+  // Check if we're on mobile
+  const isMobile = window.innerWidth <= 768;
+  
+  if (isMobile) {
+    // Mobile card layout
+    els.tbody.innerHTML = '';
+    for (const r of rows) {
+      const card = document.createElement('div');
+      card.className = 'mobile-model-card';
+      card.dataset.id = r.id;
+      card.innerHTML = `
+        <div class="mobile-model-name">${r.name ?? ''}</div>
+        <div class="mobile-measurements">
+          <div class="mobile-measurement-item">
+            <div class="mobile-measurement-label">Bust</div>
+            <div class="mobile-measurement-value">${r.bust ?? '—'}</div>
+          </div>
+          <div class="mobile-measurement-item">
+            <div class="mobile-measurement-label">Chest</div>
+            <div class="mobile-measurement-value">${r.chest ?? '—'}</div>
+          </div>
+          <div class="mobile-measurement-item">
+            <div class="mobile-measurement-label">Waist</div>
+            <div class="mobile-measurement-value">${r.waist ?? '—'}</div>
+          </div>
+          <div class="mobile-measurement-item">
+            <div class="mobile-measurement-label">Hips</div>
+            <div class="mobile-measurement-value">${r.hips ?? '—'}</div>
+          </div>
+        </div>
+      `;
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', () => {
+        const id = card.dataset.id;
+        window.location.href = `modeldetails.html?id=${encodeURIComponent(id)}`;
+      });
+      els.tbody.appendChild(card);
+    }
+  } else {
+    // Desktop table layout
+    for (const r of rows) {
+      const tr = document.createElement('tr');
+      tr.dataset.id = r.id;
+      tr.innerHTML = `
+        <td data-label="Name">${r.name ?? ''}</td>
+        <td data-label="City" class="hide-mobile">${r.city ?? ''}</td>
+        <td data-label="Landmark" class="hide-mobile">${r.landmark ?? ''}</td>
+        <td data-label="Bust">${r.bust ?? ''}</td>
+        <td data-label="Chest">${r.chest ?? ''}</td>
+        <td data-label="Waist">${r.waist ?? ''}</td>
+        <td data-label="Hips">${r.hips ?? ''}</td>
+        <td data-label="Saved At" class="hide-mobile">${r.saved_at ? new Date(r.saved_at).toLocaleString() : ''}</td>
+      `;
+      tr.style.cursor = 'pointer';
+      tr.addEventListener('click', () => {
+        const id = tr.dataset.id;
+        window.location.href = `modeldetails.html?id=${encodeURIComponent(id)}`;
+      });
+      els.tbody.appendChild(tr);
+    }
   }
 }
 
