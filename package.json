@@ -1,0 +1,21 @@
+{
+  "name": "nikhilgajare",
+  "version": "1.0.0",
+  "description": "Model Management System - A web-based model management system built with HTML, CSS, JavaScript, and Supabase",
+  "main": "index.html",
+  "scripts": {
+    "build:config": "node scripts/write-config.js"
+  },
+  "keywords": [
+    "model-management",
+    "supabase",
+    "html",
+    "javascript",
+    "static-site"
+  ],
+  "author": "Nikhil Gajare",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
