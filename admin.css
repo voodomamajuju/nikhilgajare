@@ -609,6 +609,11 @@ body {
         margin-top: 1rem;
     }
     
+    /* Hide non-essential columns on mobile */
+    .hide-mobile {
+        display: none !important;
+    }
+    
     .responsive-table {
         font-size: 0.85rem;
     }

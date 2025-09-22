@@ -151,13 +151,13 @@ function renderRows(rows) {
     tr.dataset.id = r.id;
     tr.innerHTML = `
       <td data-label="Name">${r.name ?? ''}</td>
-      <td data-label="City">${r.city ?? ''}</td>
-      <td data-label="Landmark">${r.landmark ?? ''}</td>
+      <td data-label="City" class="hide-mobile">${r.city ?? ''}</td>
+      <td data-label="Landmark" class="hide-mobile">${r.landmark ?? ''}</td>
       <td data-label="Bust">${r.bust ?? ''}</td>
       <td data-label="Chest">${r.chest ?? ''}</td>
       <td data-label="Waist">${r.waist ?? ''}</td>
       <td data-label="Hips">${r.hips ?? ''}</td>
-      <td data-label="Saved At">${r.saved_at ? new Date(r.saved_at).toLocaleString() : ''}</td>
+      <td data-label="Saved At" class="hide-mobile">${r.saved_at ? new Date(r.saved_at).toLocaleString() : ''}</td>
     `;
     tr.style.cursor = 'pointer';
     tr.addEventListener('click', () => {
