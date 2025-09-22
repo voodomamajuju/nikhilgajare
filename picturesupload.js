@@ -263,7 +263,7 @@ function showEditForm() {
 
         <div class="field">
           <label for="edit_photos" class="label">Add More Photos (optional)</label>
-          <input id="edit_photos" name="makeup_pics" type="file" multiple accept="image/*" class="input" />
+          <input id="edit_photos" name="makeup_pics" type="file" multiple accept="image/jpeg,image/jpg,image/png,image/webp" class="input" />
           <small class="help-text">You can upload up to ${MAX_FILES} additional images (${MAX_SIZE_MB}MB max each)</small>
         </div>
 
