@@ -70,19 +70,19 @@
             console.log('📋 User has existing submission, redirecting to submission details');
             // Redirect to a submission details/edit page
             window.location.href = 'submission-details.html';
-          } else {
-            console.log('📝 No existing submission, redirecting to main form');
-            // No existing submission, redirect to main form
-            window.location.href = 'index.html';
-          }
+                  } else {
+                    console.log('📝 No existing submission, redirecting to main form');
+                    // No existing submission, redirect to main form
+                    window.location.href = 'form.html';
+                  }
         } else {
           // Fallback to main form
-          window.location.href = 'index.html';
+          window.location.href = 'form.html';
         }
       } catch (error) {
         console.error('❌ Error checking existing submission:', error);
         // Fallback to main form on error
-        window.location.href = 'index.html';
+        window.location.href = 'form.html';
       }
     }
 
@@ -209,11 +209,11 @@
           if (error) throw error;
           showStatus("Sign up successful! Redirecting to form...");
           
-          // Direct redirect to index.html for sign up
-          setTimeout(() => {
-            console.log('🎉 Sign up completed, redirecting to index.html');
-            window.location.href = 'index.html';
-          }, 1000);
+                  // Direct redirect to form.html for sign up
+                  setTimeout(() => {
+                    console.log('🎉 Sign up completed, redirecting to form.html');
+                    window.location.href = 'form.html';
+                  }, 1000);
         } else {
           // Sign in - redirect to existing submission or main form
           const { data, error } = await supabase.auth.signInWithPassword({ email, password });
