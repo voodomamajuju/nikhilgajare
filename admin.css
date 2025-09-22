@@ -607,6 +607,12 @@ body {
     /* Results container optimization */
     .table-container {
         margin-top: 1rem;
+        display: block !important;
+    }
+    
+    /* Ensure tbody can display cards */
+    #models-table-body {
+        display: block !important;
     }
     
     /* Hide non-essential columns on mobile */
@@ -629,11 +635,14 @@ body {
     /* Mobile card layout instead of table */
     .mobile-model-card {
         background: #fff;
-        border: 1px solid #ddd;
+        border: 2px solid #007bff;
         border-radius: 12px;
         padding: 16px;
         margin-bottom: 12px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: block !important;
+        width: 100%;
+        min-height: 120px;
     }
     
     .mobile-model-name {

@@ -148,10 +148,12 @@ function renderRows(rows) {
 
   // Check if we're on mobile
   const isMobile = window.innerWidth <= 768;
+  console.log('Screen width:', window.innerWidth, 'isMobile:', isMobile);
   
   if (isMobile) {
     // Mobile card layout
     els.tbody.innerHTML = '';
+    console.log('Creating mobile cards for', rows.length, 'models');
     for (const r of rows) {
       const card = document.createElement('div');
       card.className = 'mobile-model-card';
@@ -183,6 +185,7 @@ function renderRows(rows) {
         window.location.href = `modeldetails.html?id=${encodeURIComponent(id)}`;
       });
       els.tbody.appendChild(card);
+      console.log('Appended card for model:', r.name);
     }
   } else {
     // Desktop table layout
