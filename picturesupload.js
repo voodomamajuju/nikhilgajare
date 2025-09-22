@@ -584,6 +584,12 @@ async function init() {
           for (const f of files) {
             if (!ALLOWED_EXT.test(f.name)) throw new Error(`File type not allowed: ${f.name}`);
             if (f.size > MAX_BYTES) throw new Error(`File ${f.name} exceeds ${MAX_SIZE_MB}MB.`);
+            
+            // Additional MIME type validation for better compatibility
+            const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            if (f.type && !allowedMimeTypes.includes(f.type.toLowerCase())) {
+              console.warn(`File ${f.name} has MIME type ${f.type}, but we'll allow it anyway`);
+            }
           }
         }
 
@@ -596,6 +602,13 @@ async function init() {
             const safeName = makeSafeFilename(f.name);
             const key = `submissions/${Date.now()}_${Math.random().toString(36).slice(2,8)}_${safeName}`;
             console.log('⬆️ Uploading', f.name, '->', key);
+
+            console.log('📤 Uploading file:', {
+              name: f.name,
+              type: f.type,
+              size: f.size,
+              key: key
+            });
 
             const { data, error } = await supabaseClient.storage.from(BUCKET_NAME).upload(key, f, {
               cacheControl: '3600',
