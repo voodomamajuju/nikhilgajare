@@ -12,7 +12,7 @@
   # Disable secrets scanning for config files (anon key is safe to be public)
   SECRETS_SCAN_OMIT_PATHS = "config.js,config.public.js"
 
-# Redirect all paths to index.html for SPA routing
+# Redirect root to login page
 [[redirects]]
   from = "/"
   to = "/login.html"
