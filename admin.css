@@ -475,11 +475,128 @@ body {
 }
 
 /* Small mobile devices */
-@media screen and (max-width: 480px) {
-    .sidebar-menu a {
-        padding: 8px 4px;
-        min-height: 50px;
+/* Mobile responsiveness for admin pages */
+@media screen and (max-width: 768px) {
+    .container {
+        flex-direction: column;
     }
+    
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding: 1rem;
+    }
+    
+    .sidebar-header h1 {
+        font-size: 1.25rem;
+    }
+    
+    .sidebar-menu {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 0.5rem;
+    }
+    
+    .sidebar-menu a {
+        padding: 0.5rem 0.75rem;
+        min-width: auto;
+        white-space: nowrap;
+        border-radius: 8px;
+    }
+    
+    .main-content {
+        padding: 1rem;
+        width: 100%;
+    }
+    
+    .dashboard-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    
+    .dashboard-title {
+        font-size: 1.5rem;
+    }
+    
+    .search-container {
+        width: 100%;
+    }
+    
+    .search-container input {
+        width: 100%;
+    }
+    
+    .responsive-table {
+        font-size: 0.85rem;
+    }
+    
+    .responsive-table thead {
+        display: none;
+    }
+
+    .responsive-table tr {
+        display: block;
+        border: 1px solid #ddd;
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    .responsive-table td {
+        display: block;
+        text-align: left;
+        border: none;
+        padding: 5px 0;
+    }
+
+    .responsive-table td:before {
+        content: attr(data-label) ": ";
+        font-weight: bold;
+        display: inline-block;
+        width: 120px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .sidebar {
+        padding: 0.75rem;
+    }
+    
+    .sidebar-menu {
+        gap: 0.25rem;
+    }
+    
+    .sidebar-menu a {
+        padding: 0.4rem 0.5rem;
+        font-size: 0.85rem;
+        min-height: auto;
+    }
+    
+    .main-content {
+        padding: 0.75rem;
+    }
+    
+    .dashboard-title {
+        font-size: 1.25rem;
+    }
+    
+    .search-container input {
+        font-size: 0.9rem;
+        padding: 0.75rem;
+    }
+    
+    .responsive-table {
+        font-size: 0.8rem;
+    }
+    
+    .responsive-table td:before {
+        width: 100px;
+        font-size: 0.8rem;
+    }
+}
     
     .sidebar-menu a span {
         font-size: 18px;
