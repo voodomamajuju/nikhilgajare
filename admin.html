@@ -95,7 +95,8 @@
 
       <!-- TABLE (hidden by default) -->
       <div class="table-container" id="resultsContainer" style="display:none;">
-        <table class="responsive-table">
+        <!-- Desktop table -->
+        <table class="responsive-table" id="desktop-table">
           <thead>
             <tr>
               <th>Name</th>
@@ -110,6 +111,9 @@
           </thead>
           <tbody id="models-table-body"></tbody>
         </table>
+        
+        <!-- Mobile cards container -->
+        <div id="mobile-cards-container" style="display:none;"></div>
       </div>
     </main>
   </div>

@@ -62,6 +62,8 @@ const els = {
   message: messageArea,
   tableContainer: document.getElementById('resultsContainer'),
   tbody: document.getElementById('models-table-body'),
+  mobileContainer: document.getElementById('mobile-cards-container'),
+  desktopTable: document.getElementById('desktop-table'),
   total: document.getElementById('totalCount'),
 };
 
@@ -152,7 +154,9 @@ function renderRows(rows) {
   
   if (isMobile) {
     // Mobile card layout
-    els.tbody.innerHTML = '';
+    els.mobileContainer.innerHTML = '';
+    els.desktopTable.style.display = 'none';
+    els.mobileContainer.style.display = 'block';
     console.log('Creating mobile cards for', rows.length, 'models');
     for (const r of rows) {
       const card = document.createElement('div');
@@ -184,11 +188,14 @@ function renderRows(rows) {
         const id = card.dataset.id;
         window.location.href = `modeldetails.html?id=${encodeURIComponent(id)}`;
       });
-      els.tbody.appendChild(card);
+      els.mobileContainer.appendChild(card);
       console.log('Appended card for model:', r.name);
     }
   } else {
     // Desktop table layout
+    els.desktopTable.style.display = 'table';
+    els.mobileContainer.style.display = 'none';
+    els.tbody.innerHTML = '';
     for (const r of rows) {
       const tr = document.createElement('tr');
       tr.dataset.id = r.id;
