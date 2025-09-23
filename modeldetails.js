@@ -131,7 +131,7 @@ try {
               </div>
               <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f8f9fa;">
                 <span style="font-weight:600;">Height:</span>
-                <span style="color:#666;font-size:1.1rem;">${(m?.height && m.height > 0) ? `${m.height} cm` : 'Not provided'}</span>
+                <span style="color:#666;font-size:1.1rem;">${(m?.height_feet !== null && m?.height_inches !== null) ? `${m.height_feet}'${m.height_inches}"` : (m?.height && m.height > 0) ? `${m.height} cm` : 'Not provided'}</span>
               </div>
               <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;">
                 <span style="font-weight:600;">Age:</span>
@@ -252,12 +252,18 @@ try {
         hips: typeof submission.hips === 'number' ? submission.hips : null,
         height: (typeof submission.height === 'number' && submission.height > 0) ? submission.height : 
                 (typeof submission.height === 'string' && submission.height.trim() !== '') ? parseFloat(submission.height) : null,
+        height_feet: (typeof submission.height_feet === 'number' && submission.height_feet >= 0) ? submission.height_feet : null,
+        height_inches: (typeof submission.height_inches === 'number' && submission.height_inches >= 0) ? submission.height_inches : null,
         age: typeof submission.age === 'number' ? submission.age : null,
       };
       
       console.log('✅ Successfully fetched model from Supabase:', sanitizedData.name);
       console.log('🔍 Raw height value from database:', submission.height, 'Type:', typeof submission.height);
+      console.log('🔍 Raw height_feet:', submission.height_feet, 'Type:', typeof submission.height_feet);
+      console.log('🔍 Raw height_inches:', submission.height_inches, 'Type:', typeof submission.height_inches);
       console.log('🔍 Processed height value:', sanitizedData.height);
+      console.log('🔍 Processed height_feet:', sanitizedData.height_feet);
+      console.log('🔍 Processed height_inches:', sanitizedData.height_inches);
       return sanitizedData;
     } catch (err) {
       console.error('❌ Network error fetching model:', err);
