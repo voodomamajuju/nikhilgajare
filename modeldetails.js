@@ -63,13 +63,21 @@ try {
     return html`
       <div style="max-width:900px;margin:0 auto;padding:20px;">
         <!-- Header Section -->
-        <section style="margin-bottom:32px;text-align:center;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:32px;border-radius:16px;">
+        <section style="margin-bottom:32px;text-align:center;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:32px;border-radius:16px;position:relative;">
           <h1 style="margin-bottom:12px;font-size:2.5rem;font-weight:700;">${name || 'Unknown Model'}</h1>
           <div style="font-size:1.2rem;margin-bottom:8px;opacity:0.9;">${loc || 'Location not specified'}</div>
           <div style="font-size:0.9rem;opacity:0.7;">
             ${savedDate ? `Added: ${savedDate}` : ''}
             ${createdDate && createdDate !== savedDate ? ` • Created: ${createdDate}` : ''}
           </div>
+          
+          <!-- Delete Button -->
+          <button id="deleteModelBtn" 
+                  style="position:absolute;top:20px;right:20px;background:#dc3545;color:white;border:none;padding:12px 20px;border-radius:8px;font-size:0.9rem;cursor:pointer;transition:all 0.2s ease;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,0.2);"
+                  onmouseover="this.style.background='#c82333';this.style.transform='translateY(-2px)'"
+                  onmouseout="this.style.background='#dc3545';this.style.transform='translateY(0)'">
+            🗑️ Delete Model
+          </button>
         </section>
         
         <!-- Contact & Measurements Grid -->
@@ -407,6 +415,89 @@ try {
     }
   }
 
+  async function deleteModel() {
+    if (!supabaseClient) {
+      console.log('📱 Cannot delete model - Supabase not connected');
+      alert('Cannot delete model: Database connection not available');
+      return { ok: false, error: 'No database connection' };
+    }
+    
+    try {
+      console.log(`🔄 Deleting model with ID: ${id}`);
+      
+      // First, get the model data to access photo paths for storage deletion
+      const { data: modelData, error: fetchError } = await supabaseClient
+        .from('submissions')
+        .select('photo_paths')
+        .eq('id', id)
+        .maybeSingle();
+      
+      if (fetchError) {
+        console.error('❌ Error fetching model data for deletion:', fetchError);
+        return { ok: false, error: fetchError };
+      }
+      
+      // Delete photo files from Supabase Storage if they exist
+      if (modelData && Array.isArray(modelData.photo_paths) && modelData.photo_paths.length > 0 && STORAGE_BUCKET) {
+        console.log(`🔄 Deleting ${modelData.photo_paths.length} photo(s) from storage`);
+        
+        try {
+          const { error: storageError } = await supabaseClient.storage
+            .from(STORAGE_BUCKET)
+            .remove(modelData.photo_paths);
+          
+          if (storageError) {
+            console.error('❌ Error deleting photos from storage:', storageError);
+            // Continue with database deletion even if storage deletion fails
+          } else {
+            console.log('✅ Photos deleted from storage successfully');
+          }
+        } catch (storageErr) {
+          console.error('❌ Network error deleting photos from storage:', storageErr);
+          // Continue with database deletion even if storage deletion fails
+        }
+      } else {
+        console.log('ℹ️ No photos to delete from storage');
+      }
+      
+      // Delete related records (model_status and model_notes)
+      const { error: statusError } = await supabaseClient
+        .from('model_status')
+        .delete()
+        .eq('submission_id', id);
+      
+      if (statusError) {
+        console.error('❌ Error deleting model status:', statusError);
+      }
+      
+      const { error: notesError } = await supabaseClient
+        .from('model_notes')
+        .delete()
+        .eq('submission_id', id);
+      
+      if (notesError) {
+        console.error('❌ Error deleting model notes:', notesError);
+      }
+      
+      // Delete the main submission record
+      const { error: submissionError } = await supabaseClient
+        .from('submissions')
+        .delete()
+        .eq('id', id);
+      
+      if (submissionError) {
+        console.error('❌ Supabase model deletion error:', submissionError);
+        return { ok: false, error: submissionError };
+      }
+      
+      console.log('✅ Model and all associated data deleted successfully');
+      return { ok: true };
+    } catch (err) {
+      console.error('❌ Network error deleting model:', err);
+      return { ok: false, error: err };
+    }
+  }
+
   async function init() {
     try {
       container.style.opacity = '0';
@@ -447,6 +538,7 @@ try {
       const workingToggle = document.getElementById('workingToggle');
       const notesInput = document.getElementById('notesInput');
       const saveNotesBtn = document.getElementById('saveNotes');
+      const deleteModelBtn = document.getElementById('deleteModelBtn');
 
       workingToggle?.addEventListener('change', async () => {
         const next = workingToggle.checked;
@@ -503,6 +595,41 @@ try {
           saveNotesBtn.textContent = originalText;
           saveNotesBtn.disabled = false;
           alert('Failed to save notes. Please try again.');
+        }
+      });
+
+      deleteModelBtn?.addEventListener('click', async () => {
+        // Show confirmation dialog
+        const modelName = model?.name || 'this model';
+        const confirmed = confirm(`Are you sure you want to delete "${modelName}"?\n\nThis action cannot be undone and will permanently remove:\n• Model information\n• Contact details\n• Measurements\n• Photos (from database and storage)\n• Working status\n• Admin notes`);
+        
+        if (!confirmed) {
+          return;
+        }
+        
+        // Show loading state
+        const originalText = deleteModelBtn.textContent;
+        deleteModelBtn.textContent = 'Deleting...';
+        deleteModelBtn.disabled = true;
+        deleteModelBtn.style.background = '#6c757d';
+        
+        const res = await deleteModel();
+        
+        if (res.ok) {
+          // Show success message briefly before redirecting
+          deleteModelBtn.textContent = 'Deleted ✓';
+          deleteModelBtn.style.background = '#28a745';
+          
+          setTimeout(() => {
+            // Redirect to models page
+            window.location.href = 'models.html';
+          }, 1500);
+        } else {
+          // Revert button state on error
+          deleteModelBtn.textContent = originalText;
+          deleteModelBtn.disabled = false;
+          deleteModelBtn.style.background = '#dc3545';
+          alert('Failed to delete model. Please try again.');
         }
       });
       
