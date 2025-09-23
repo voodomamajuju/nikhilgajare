@@ -131,7 +131,7 @@ try {
               </div>
               <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f8f9fa;">
                 <span style="font-weight:600;">Height:</span>
-                <span style="color:#666;font-size:1.1rem;">${m?.height ? `${m.height} cm` : 'Not provided'}</span>
+                <span style="color:#666;font-size:1.1rem;">${(m?.height && m.height > 0) ? `${m.height} cm` : 'Not provided'}</span>
               </div>
               <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;">
                 <span style="font-weight:600;">Age:</span>
@@ -250,11 +250,14 @@ try {
         chest: typeof submission.chest === 'number' ? submission.chest : null,
         waist: typeof submission.waist === 'number' ? submission.waist : null,
         hips: typeof submission.hips === 'number' ? submission.hips : null,
-        height: typeof submission.height === 'number' ? submission.height : null,
+        height: (typeof submission.height === 'number' && submission.height > 0) ? submission.height : 
+                (typeof submission.height === 'string' && submission.height.trim() !== '') ? parseFloat(submission.height) : null,
         age: typeof submission.age === 'number' ? submission.age : null,
       };
       
       console.log('✅ Successfully fetched model from Supabase:', sanitizedData.name);
+      console.log('🔍 Raw height value from database:', submission.height, 'Type:', typeof submission.height);
+      console.log('🔍 Processed height value:', sanitizedData.height);
       return sanitizedData;
     } catch (err) {
       console.error('❌ Network error fetching model:', err);
