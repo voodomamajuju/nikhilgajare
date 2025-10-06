@@ -71,18 +71,17 @@
             // Redirect to a submission details/edit page
             window.location.href = 'submission-details.html';
                   } else {
-                    console.log('📝 No existing submission, redirecting to main form');
-                    // No existing submission, redirect to main form
-                    window.location.href = 'form.html';
+                    console.log('📝 No existing submission, staying on login page');
+                    // No existing submission, stay on login page for user to choose
                   }
         } else {
-          // Fallback to main form
-          window.location.href = 'form.html';
+          // No user, stay on login page
+          console.log('👤 No user session, staying on login page');
         }
       } catch (error) {
         console.error('❌ Error checking existing submission:', error);
-        // Fallback to main form on error
-        window.location.href = 'form.html';
+        // Stay on login page on error
+        console.log('⚠️ Error occurred, staying on login page');
       }
     }
 
