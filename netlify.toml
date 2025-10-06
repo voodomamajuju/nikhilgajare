@@ -12,7 +12,11 @@
   # Disable secrets scanning for config files (anon key is safe to be public)
   SECRETS_SCAN_OMIT_PATHS = "config.js,config.public.js"
 
-# Root should load index.html (no redirect needed). Removing prior login redirect.
+# Redirect root to login page (handle everything at login.html)
+[[redirects]]
+  from = "/"
+  to = "/login.html"
+  status = 200
 
 # Headers for security and performance
 [[headers]]
