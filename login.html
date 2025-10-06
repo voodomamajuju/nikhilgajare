@@ -101,7 +101,7 @@
       
       // Only auto-redirect if not coming from thank you page
       const urlParams = new URLSearchParams(window.location.search);
-      if (!urlParams.get('from') === 'thankyou') {
+      if (urlParams.get('from') !== 'thankyou') {
         // Check if this is an admin by email
         const userEmail = session.user.email;
         console.log('🔍 Checking user email:', userEmail);
