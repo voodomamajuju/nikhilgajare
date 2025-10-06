@@ -7,8 +7,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta http-equiv="refresh" content="0; url=login.html" />
   <script>
-    // Immediate redirect to login page
-    window.location.href = 'login.html';
+    // Immediate redirect to login page with fallback
+    if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
+      window.location.replace('login.html');
+    }
   </script>
 </head>
 
