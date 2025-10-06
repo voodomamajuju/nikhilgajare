@@ -94,13 +94,14 @@
     
     // Check if user is already logged in
     const { data: { session } } = await supabase.auth.getSession();
+    const urlParams = new URLSearchParams(window.location.search);
+    const shouldAuto = urlParams.get('auto') === '1'; // only auto-redirect when explicitly requested
     if (session) {
       // Show logout button
       document.getElementById('logoutBtn').style.display = 'block';
       
-      // Only auto-redirect if not coming from thank you page
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('from') !== 'thankyou') {
+      // Only auto-redirect after explicit flows (e.g., OAuth), and not from thank you page
+      if (shouldAuto && urlParams.get('from') !== 'thankyou') {
         // Check if this is an admin by email
         const userEmail = session.user.email;
         console.log('🔍 Checking user email:', userEmail);
@@ -114,6 +115,8 @@
           sessionStorage.setItem('userRole', 'user');
           await redirectToApp();
         }
+      } else {
+        console.log('ℹ️ Session present, staying on login (no auto param).');
       }
     }
 
@@ -148,7 +151,8 @@
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: window.location.origin + "/login.html"
+          // Return with auto=1 to enable single-shot auto-redirect after OAuth only
+          redirectTo: window.location.origin + "/login.html?auto=1"
         }
       });
       if (error) {
