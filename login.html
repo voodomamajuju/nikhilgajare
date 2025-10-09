@@ -29,6 +29,7 @@
       
               <div class="auth-links">
                 <button id="signUpToggle" class="link-btn">Don't have an account? Sign Up</button>
+                <a href="form.html" class="link-btn" style="display: inline-block; margin-top: 8px;">Start Model Application</a>
                 <button id="logoutBtn" class="link-btn logout" style="display: none;">Logout & Clear Session</button>
               </div>
     </div>
@@ -71,8 +72,9 @@
             // Redirect to a submission details/edit page
             window.location.href = 'submission-details.html';
                   } else {
-                    console.log('📝 No existing submission, staying on login page');
-                    // No existing submission, stay on login page for user to choose
+                    console.log('📝 No existing submission, redirecting to form');
+                    // No existing submission, redirect to form for new users
+                    window.location.href = 'form.html';
                   }
         } else {
           // No user, stay on login page
@@ -80,8 +82,9 @@
         }
       } catch (error) {
         console.error('❌ Error checking existing submission:', error);
-        // Stay on login page on error
-        console.log('⚠️ Error occurred, staying on login page');
+        // Redirect to form on error as fallback
+        console.log('⚠️ Error occurred, redirecting to form as fallback');
+        window.location.href = 'form.html';
       }
     }
 
