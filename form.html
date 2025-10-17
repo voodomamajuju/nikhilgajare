@@ -54,7 +54,9 @@
         <div class="field">
           <label for="email" class="label">Email Address</label>
           <input id="email" name="email" type="email" placeholder="your.email@example.com" class="input"
-            required autocomplete="email" />
+            required autocomplete="email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" 
+            title="Please enter a valid email address (no fake or temporary emails)" />
+          <small class="help-text">We'll use this to contact you about your application</small>
         </div>
 
         <div class="field">

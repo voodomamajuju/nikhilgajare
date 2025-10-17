@@ -28,6 +28,53 @@ function makeSafeFilename(name) {
     .replace(/[^\w\-.]/g, '');
 }
 
+// Enhanced email validation (same as contact.js)
+function validateEmail(email) {
+  if (!email) return { valid: false, message: 'Email is required' };
+  
+  // Basic format validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return { valid: false, message: 'Please enter a valid email format' };
+  }
+  
+  // Check for common fake email patterns
+  const fakePatterns = [
+    /test@/i, /fake@/i, /dummy@/i, /example@/i, /sample@/i, /temp@/i, /temporary@/i,
+    /byebye\.com$/i, /fake\.com$/i, /test\.com$/i, /dummy\.com$/i, /example\.com$/i,
+    /sample\.com$/i, /temp\.com$/i, /temporary\.com$/i, /idontcare@/i, /dontcare@/i,
+    /whatever@/i, /random@/i, /noreply@/i, /no-reply@/i
+  ];
+  
+  for (const pattern of fakePatterns) {
+    if (pattern.test(email)) {
+      return { valid: false, message: 'Please use a real email address' };
+    }
+  }
+  
+  // Check for suspicious domains (common disposable email domains)
+  const suspiciousDomains = [
+    '10minutemail.com', 'tempmail.org', 'guerrillamail.com', 'mailinator.com',
+    'throwaway.email', 'temp-mail.org', 'sharklasers.com', 'grr.la',
+    'guerrillamailblock.com', 'pokemail.net', 'spam4.me', 'bccto.me',
+    'chacuo.net', 'dispostable.com', 'mailnesia.com', 'maildrop.cc',
+    'mailcatch.com', 'inboxalias.com', 'mailmetrash.com', 'trashmail.net',
+    'trashmail.com', 'spamgourmet.com', 'spam.la', 'binkmail.com',
+    'bobmail.info', 'chammy.info', 'devnullmail.com', 'letthemeatspam.com',
+    'mailin8r.com', 'mailinator2.com', 'notmailinator.com', 'reallymymail.com',
+    'reconmail.com', 'safetymail.info', 'sogetthis.com', 'spamhereplease.com',
+    'superrito.com', 'thisisnotmyrealemail.com', 'tradermail.info',
+    'veryrealemail.com', 'wegwerfmail.de', 'wegwerfmail.net', 'wegwerfmail.org'
+  ];
+  
+  const domain = email.split('@')[1]?.toLowerCase();
+  if (suspiciousDomains.includes(domain)) {
+    return { valid: false, message: 'Please use a permanent email address, not a temporary one' };
+  }
+  
+  return { valid: true, message: 'Email is valid' };
+}
+
 function setLoading(btn, on) {
   if (!btn) return;
   btn.disabled = on;
@@ -644,6 +691,12 @@ async function init() {
         const { data: { user } } = await supabaseClient.auth.getUser();
         if (user) {
           saved.user_id = user.id;
+        }
+
+        // Validate email before database insert
+        const emailValidation = validateEmail(saved.email);
+        if (!emailValidation.valid) {
+          throw new Error(`Email validation failed: ${emailValidation.message}`);
         }
 
         // Insert into DB (submissions table)
