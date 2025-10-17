@@ -152,12 +152,20 @@ function attachHandlers(supabaseClient) {
     e.preventDefault();
     const data = getFormData(form);
 
+    // Debug logging
+    console.log('Form submitted with email:', data.email);
+    
     // Validate email before proceeding
     const emailValidation = validateEmail(data.email);
+    console.log('Email validation result:', emailValidation);
+    
     if (!emailValidation.valid) {
+      console.log('Email validation failed, showing alert');
       alert(`❌ Invalid email ID`);
       return;
     }
+    
+    console.log('Email validation passed, proceeding...');
 
     // 1) Save in localStorage for the multi-step flow
     localStorage.setItem('formData', JSON.stringify(data));
