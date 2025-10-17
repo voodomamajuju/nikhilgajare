@@ -13,7 +13,7 @@ function createSupabaseClient() {
   return null;
 }
 
-// Enhanced email validation
+// Enhanced email validation - Whitelist approach
 function validateEmail(email) {
   if (!email) return { valid: false, message: 'Email is required' };
   
@@ -23,89 +23,75 @@ function validateEmail(email) {
     return { valid: false, message: 'Please enter a valid email format' };
   }
   
-  // Check for suspicious email patterns
-  const suspiciousPatterns = [
-    // Obvious fake usernames
-    /^test\d*@/i, /^fake\d*@/i, /^dummy\d*@/i, /^sample\d*@/i,
-    /^user\d*@/i, /^admin\d*@/i, /^root\d*@/i, /^guest\d*@/i,
-    /^nobody@/i, /^someone@/i, /^anyone@/i, /^everyone@/i,
-    /^random@/i, /^whatever@/i, /^something@/i, /^anything@/i,
-    /^idontcare@/i, /^dontcare@/i, /^dontgiveashit@/i,
-    /^lavdalasan@/i, /^fuckboy@/i, /^fuckgirl@/i,
+  // Whitelist of popular, legitimate email domains
+  const allowedDomains = [
+    // Major email providers
+    'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'live.com',
+    'aol.com', 'icloud.com', 'me.com', 'mac.com', 'protonmail.com',
+    'yandex.com', 'mail.ru', 'zoho.com', 'fastmail.com',
     
-    // Keyboard patterns and nonsense
-    /^asdf@/i, /^qwerty@/i, /^zxcv@/i, /^hjkl@/i,
-    /^123456@/i, /^abcdef@/i, /^aaaa@/i, /^1111@/i,
-    /^asdfgh@/i, /^qwertyui@/i, /^zxcvbn@/i,
+    // Educational institutions (.edu domains)
+    'harvard.edu', 'mit.edu', 'stanford.edu', 'berkeley.edu', 'ucla.edu',
+    'nyu.edu', 'columbia.edu', 'cornell.edu', 'princeton.edu', 'yale.edu',
+    'duke.edu', 'northwestern.edu', 'upenn.edu', 'brown.edu', 'dartmouth.edu',
+    'vanderbilt.edu', 'rice.edu', 'wustl.edu', 'emory.edu', 'georgetown.edu',
+    'carnegie.edu', 'cmu.edu', 'jhu.edu', 'usc.edu', 'ucsd.edu',
+    'ucsb.edu', 'ucdavis.edu', 'uci.edu', 'ucsc.edu', 'ucr.edu',
+    'caltech.edu', 'gatech.edu', 'umich.edu', 'illinois.edu', 'purdue.edu',
+    'indiana.edu', 'wisconsin.edu', 'minnesota.edu', 'ohio.edu', 'psu.edu',
+    'rutgers.edu', 'umd.edu', 'virginia.edu', 'vt.edu', 'ncsu.edu',
+    'unc.edu', 'duke.edu', 'wfu.edu', 'clemson.edu', 'sc.edu',
+    'uga.edu', 'fsu.edu', 'ufl.edu', 'miami.edu', 'fiu.edu',
+    'ut.edu', 'tamu.edu', 'utdallas.edu', 'uh.edu', 'rice.edu',
+    'baylor.edu', 'tcu.edu', 'smu.edu', 'ttu.edu', 'utep.edu',
+    'asu.edu', 'uofa.edu', 'nau.edu', 'unlv.edu', 'unr.edu',
+    'ucolorado.edu', 'csu.edu', 'du.edu', 'colorado.edu', 'utah.edu',
+    'byu.edu', 'usu.edu', 'wsu.edu', 'uw.edu', 'oregon.edu',
+    'osu.edu', 'pdx.edu', 'uoregon.edu', 'oregonstate.edu', 'alaska.edu',
+    'hawaii.edu', 'manoa.edu', 'hilo.edu', 'westoahu.edu', 'kapi.edu',
     
-    // Single character or very short usernames
-    /^[a-z]@/i, /^[0-9]@/i, /^.{1,2}@/i,
+    // International domains
+    'gmail.co.uk', 'yahoo.co.uk', 'hotmail.co.uk', 'outlook.co.uk',
+    'gmail.ca', 'yahoo.ca', 'hotmail.ca', 'outlook.ca',
+    'gmail.com.au', 'yahoo.com.au', 'hotmail.com.au', 'outlook.com.au',
+    'gmail.de', 'yahoo.de', 'hotmail.de', 'outlook.de',
+    'gmail.fr', 'yahoo.fr', 'hotmail.fr', 'outlook.fr',
+    'gmail.it', 'yahoo.it', 'hotmail.it', 'outlook.it',
+    'gmail.es', 'yahoo.es', 'hotmail.es', 'outlook.es',
+    'gmail.in', 'yahoo.in', 'hotmail.in', 'outlook.in',
+    'gmail.co.in', 'yahoo.co.in', 'hotmail.co.in', 'outlook.co.in',
+    'rediffmail.com', 'sify.com', 'indiatimes.com', 'vsnl.com',
+    'gmail.co.jp', 'yahoo.co.jp', 'hotmail.co.jp', 'outlook.co.jp',
+    'gmail.co.kr', 'yahoo.co.kr', 'hotmail.co.kr', 'outlook.co.kr',
+    'gmail.com.br', 'yahoo.com.br', 'hotmail.com.br', 'outlook.com.br',
+    'gmail.com.mx', 'yahoo.com.mx', 'hotmail.com.mx', 'outlook.com.mx',
     
-    // Repeated patterns
-    /^(.{1,3})\1+@/i, // repeated short patterns like "aaa@", "abab@"
+    // Corporate domains (common ones)
+    'microsoft.com', 'apple.com', 'google.com', 'amazon.com', 'facebook.com',
+    'twitter.com', 'linkedin.com', 'salesforce.com', 'oracle.com', 'ibm.com',
+    'intel.com', 'nvidia.com', 'adobe.com', 'cisco.com', 'vmware.com',
+    'netflix.com', 'spotify.com', 'uber.com', 'airbnb.com', 'tesla.com',
+    'spacex.com', 'paypal.com', 'stripe.com', 'square.com', 'shopify.com',
+    'dropbox.com', 'box.com', 'slack.com', 'zoom.us', 'teams.microsoft.com',
+    'github.com', 'gitlab.com', 'bitbucket.org', 'atlassian.com', 'jira.com',
+    'trello.com', 'asana.com', 'notion.so', 'figma.com', 'canva.com',
+    'mailchimp.com', 'hubspot.com', 'zendesk.com', 'intercom.com', 'freshworks.com',
+    'twilio.com', 'sendgrid.com', 'mailgun.com', 'postmark.com', 'mandrill.com',
     
-    // Suspicious domains
-    /\.(test|fake|dummy|example|sample|temp|temporary|localhost|domain|website|site)\.(com|org|net)$/i,
-    /\.(byebye|fuckboy|fuckgirl|sex|porn|xxx|adult|nsfw|inappropriate|vulgar|offensive)\.(com|org|net)$/i,
+    // Government domains
+    'gov.in', 'gov.uk', 'gov.ca', 'gov.au', 'gov.de', 'gov.fr', 'gov.it',
+    'gov.es', 'gov.jp', 'gov.kr', 'gov.br', 'gov.mx', 'gov.us', 'gov.com',
     
-    // Common fake domains
-    /@(test|fake|dummy|example|sample|temp|temporary|localhost|domain|website|site)\.(com|org|net)$/i,
-    /@(byebye|fuckboy|fuckgirl|sex|porn|xxx|adult|nsfw|inappropriate|vulgar|offensive)\.(com|org|net)$/i,
-    
-    // No-reply patterns
-    /^noreply@/i, /^no-reply@/i, /^donotreply@/i, /^do-not-reply@/i
-  ];
-  
-  // Check for suspicious patterns and block them
-  for (const pattern of suspiciousPatterns) {
-    if (pattern.test(email)) {
-      return { valid: false, message: 'Invalid email ID' };
-    }
-  }
-  
-  // Additional check for inappropriate content anywhere in the email
-  const inappropriateWords = [
-    'fuck', 'shit', 'damn', 'hell', 'bitch', 'ass', 'piss', 'crap',
-    'stupid', 'idiot', 'moron', 'loser', 'hate', 'kill', 'die',
-    'sex', 'porn', 'xxx', 'adult', 'nsfw', 'inappropriate', 'vulgar', 'offensive'
-  ];
-  
-  const emailLower = email.toLowerCase();
-  for (const word of inappropriateWords) {
-    if (emailLower.includes(word)) {
-      return { valid: false, message: 'Invalid email ID' };
-    }
-  }
-  
-  // Check for suspicious domains (disposable + fake domains)
-  const suspiciousDomains = [
-    // Disposable email services
-    '10minutemail.com', 'tempmail.org', 'guerrillamail.com', 'mailinator.com',
-    'throwaway.email', 'temp-mail.org', 'sharklasers.com', 'grr.la',
-    'guerrillamailblock.com', 'pokemail.net', 'spam4.me', 'bccto.me',
-    'chacuo.net', 'dispostable.com', 'mailnesia.com', 'maildrop.cc',
-    'mailcatch.com', 'inboxalias.com', 'mailmetrash.com', 'trashmail.net',
-    'trashmail.com', 'spamgourmet.com', 'spam.la', 'binkmail.com',
-    'bobmail.info', 'chammy.info', 'devnullmail.com', 'letthemeatspam.com',
-    'mailin8r.com', 'mailinator2.com', 'notmailinator.com', 'reallymymail.com',
-    'reconmail.com', 'safetymail.info', 'sogetthis.com', 'spamhereplease.com',
-    'superrito.com', 'thisisnotmyrealemail.com', 'tradermail.info',
-    'veryrealemail.com', 'wegwerfmail.de', 'wegwerfmail.net', 'wegwerfmail.org',
-    
-    // Common fake domains
-    'test.com', 'fake.com', 'dummy.com', 'example.com', 'sample.com',
-    'temp.com', 'temporary.com', 'localhost.com', 'domain.com', 'website.com',
-    'site.com', 'byebye.com', 'fuckboy.com', 'fuckgirl.com', 'sex.com',
-    'porn.com', 'xxx.com', 'adult.com', 'nsfw.com', 'inappropriate.com',
-    'vulgar.com', 'offensive.com', 'test.org', 'fake.org', 'dummy.org',
-    'example.org', 'sample.org', 'temp.org', 'temporary.org', 'localhost.org',
-    'domain.org', 'website.org', 'site.org', 'test.net', 'fake.net',
-    'dummy.net', 'example.net', 'sample.net', 'temp.net', 'temporary.net',
-    'localhost.net', 'domain.net', 'website.net', 'site.net'
+    // Non-profit organizations
+    'org', 'ngo', 'foundation', 'charity', 'un.org', 'who.int', 'unicef.org',
+    'redcross.org', 'doctorswithoutborders.org', 'amnesty.org', 'greenpeace.org',
+    'wwf.org', 'nature.org', 'sierraclub.org', 'audubon.org', 'nrdc.org'
   ];
   
   const domain = email.split('@')[1]?.toLowerCase();
-  if (suspiciousDomains.includes(domain)) {
+  
+  // Check if domain is in whitelist
+  if (!allowedDomains.includes(domain)) {
     return { valid: false, message: 'Invalid email ID' };
   }
   
