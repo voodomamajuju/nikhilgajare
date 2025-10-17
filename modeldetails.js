@@ -58,7 +58,12 @@ try {
             </div>
           `;
         }).join('')
-      : '<div style="color:#777;text-align:center;padding:20px;">No photos available</div>';
+      : `<div style="text-align:center;padding:20px;">
+           <img src="default-avatar.svg" 
+                alt="Default Avatar" 
+                style="width:120px;height:120px;border-radius:50%;margin:0 auto 10px;display:block;opacity:0.7;" />
+           <p style="color:#777;margin:0;">No photos uploaded</p>
+         </div>`;
 
     return html`
       <div style="max-width:900px;margin:0 auto;padding:20px;">

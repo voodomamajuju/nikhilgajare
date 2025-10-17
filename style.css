@@ -52,6 +52,24 @@ body {
   padding: clamp(1.25rem, 2.5vw, 2rem) clamp(1.25rem, 3vw, 2.25rem);
 }
 
+/* Photo count indicators */
+.photo-count {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.photo-count.no-photos {
+  background: rgba(108, 117, 125, 0.8);
+  color: #f8f9fa;
+}
+
 /* Header with logo-like treatment */
 .header {
   text-align: center;

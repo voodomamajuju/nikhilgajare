@@ -127,12 +127,14 @@ function showAlreadySubmittedMessage(checkResult) {
               <span class="label">Submitted:</span>
               <span class="value">${new Date(submission.saved_at).toLocaleDateString()}</span>
             </div>
-            ${submission.photo_paths && submission.photo_paths.length > 0 ? `
             <div class="detail-row">
               <span class="label">Photos:</span>
-              <span class="value">${submission.photo_paths.length} uploaded</span>
+              <span class="value">
+                ${submission.photo_paths && submission.photo_paths.length > 0 
+                  ? `${submission.photo_paths.length} uploaded` 
+                  : 'No photos uploaded'}
+              </span>
             </div>
-            ` : ''}
           </div>
           
           <div class="action-buttons">
@@ -245,9 +247,9 @@ function showEditForm() {
             step="0.1" min="28" max="48" value="${submission.hips || ''}" />
         </div>
 
-        ${submission.photo_paths && submission.photo_paths.length > 0 ? `
         <div class="field">
           <label class="label">Current Photos:</label>
+          ${submission.photo_paths && submission.photo_paths.length > 0 ? `
           <div id="existing-photos" class="existing-photos-grid">
             ${submission.photo_paths.map((path, index) => `
               <div class="existing-photo-item">
@@ -258,8 +260,15 @@ function showEditForm() {
               </div>
             `).join('')}
           </div>
+          ` : `
+          <div style="text-align:center;padding:20px;background:#f8f9fa;border-radius:8px;">
+            <img src="default-avatar.svg" 
+                 alt="Default Avatar" 
+                 style="width:80px;height:80px;border-radius:50%;margin:0 auto 10px;display:block;opacity:0.7;" />
+            <p style="color:#6c757d;margin:0;font-size:0.9rem;">No photos uploaded yet</p>
+          </div>
+          `}
         </div>
-        ` : ''}
 
         <div class="field">
           <label for="edit_photos" class="label">Add More Photos (optional)</label>

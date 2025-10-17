@@ -32,7 +32,7 @@ const els = {
 
 function cardHtml(m) {
   // Handle photo paths - convert Supabase storage paths to full URLs
-  let photo = 'my-background.jpg'; // default fallback
+  let photo = 'default-avatar.svg'; // default placeholder for users without photos
   if (Array.isArray(m.photo_paths) && m.photo_paths[0]) {
     const photoPath = m.photo_paths[0];
     console.log('🔍 Processing photo path:', photoPath, 'for model:', m.name);
@@ -46,7 +46,7 @@ function cardHtml(m) {
       console.log('🔍 Using direct photo path:', photo);
     }
   } else {
-    console.log('🔍 No photo paths found for model:', m.name, 'using fallback');
+    console.log('🔍 No photo paths found for model:', m.name, 'using default avatar');
   }
   
   const cityLand = [m.city, m.landmark].filter(Boolean).join(' · ');
@@ -62,7 +62,7 @@ function cardHtml(m) {
   
   // Photo count indicator
   const photoCount = Array.isArray(m.photo_paths) ? m.photo_paths.length : 0;
-  const photoIndicator = photoCount > 0 ? `<div class="photo-count">📸 ${photoCount}</div>` : '';
+  const photoIndicator = photoCount > 0 ? `<div class="photo-count">📸 ${photoCount}</div>` : '<div class="photo-count no-photos">👤 No photos</div>';
   
   return `
   <div class="card" data-id="${m.id}" tabindex="0" role="button" aria-label="View details for ${m.name || 'Model'}">
