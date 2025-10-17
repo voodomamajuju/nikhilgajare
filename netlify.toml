@@ -12,7 +12,7 @@
   # Disable secrets scanning for config files (anon key is safe to be public)
   SECRETS_SCAN_OMIT_PATHS = "config.js,config.public.js"
 
-# Redirect root to login page (handle everything at login.html)
+# Redirect root to login page
 [[redirects]]
   from = "/"
   to = "/login.html"
