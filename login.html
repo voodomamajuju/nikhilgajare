@@ -8,8 +8,16 @@
 </head>
 <body>
   <div class="login-container">
-    <h1>Sign In</h1>
-    <p class="subtitle">Access your account</p>
+    <h1>Professional Model Management</h1>
+    <p class="subtitle">Access your modeling application account</p>
+    
+    <!-- Professional Disclaimer -->
+    <div class="disclaimer-box">
+      <h3>🏢 Professional Modeling Platform</h3>
+      <p><strong>Age Requirement:</strong> You must be 18+ years old to apply</p>
+      <p><strong>Purpose:</strong> Legitimate modeling opportunities and talent management</p>
+      <p><strong>Content:</strong> Professional portfolio submissions only</p>
+    </div>
     
     <div class="auth-section">
       <button id="googleSignIn" class="auth-btn google">
@@ -24,6 +32,16 @@
       <form id="emailForm" class="email-form">
         <input type="email" id="email" placeholder="Enter your email" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" title="Please enter a valid email address">
         <input type="password" id="password" placeholder="Enter your password" required>
+        
+        <!-- Age Verification -->
+        <div class="verification-section">
+          <label class="checkbox-label">
+            <input type="checkbox" id="ageVerification" required>
+            <span class="checkmark"></span>
+            I confirm I am 18+ years old and applying for legitimate modeling opportunities
+          </label>
+        </div>
+        
         <button type="submit" class="auth-btn email">Sign In</button>
       </form>
       

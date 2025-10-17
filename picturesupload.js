@@ -119,6 +119,42 @@ function setLoading(btn, on) {
   btn.textContent = on ? 'Submitting…' : 'Save & Submit';
 }
 
+// Image compression function
+async function compressImage(file, maxWidth = 1920, quality = 0.8) {
+  return new Promise((resolve) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    img.onload = () => {
+      // Calculate new dimensions
+      let { width, height } = img;
+      if (width > maxWidth) {
+        height = (height * maxWidth) / width;
+        width = maxWidth;
+      }
+      
+      // Set canvas dimensions
+      canvas.width = width;
+      canvas.height = height;
+      
+      // Draw and compress
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      canvas.toBlob((blob) => {
+        // Create new file with compressed data
+        const compressedFile = new File([blob], file.name, {
+          type: 'image/jpeg',
+          lastModified: Date.now()
+        });
+        resolve(compressedFile);
+      }, 'image/jpeg', quality);
+    };
+    
+    img.src = URL.createObjectURL(file);
+  });
+}
+
 // Check if user already has a submission
 async function checkExistingSubmission() {
   try {
@@ -446,12 +482,18 @@ async function updateSubmission() {
   let photoPaths = [...(submission.photo_paths || [])];
   
   if (photoFiles.length > 0) {
+    // Create profile-specific folder using submission ID
+    const profileFolder = `submissions/profile_${submission.id}`;
+    
     // Upload new photos
     for (const file of photoFiles) {
       const safeName = makeSafeFilename(file.name);
-      const key = `submissions/${Date.now()}_${Math.random().toString(36).slice(2,8)}_${safeName}`;
+      const key = `${profileFolder}/${Date.now()}_${Math.random().toString(36).slice(2,8)}_${safeName}`;
       
-      const { data, error } = await supabaseClient.storage.from(BUCKET_NAME).upload(key, file, {
+      // Compress image before upload
+      const compressedFile = await compressImage(file);
+      
+      const { data, error } = await supabaseClient.storage.from(BUCKET_NAME).upload(key, compressedFile, {
         cacheControl: '3600',
         upsert: false
       });
@@ -523,8 +565,8 @@ async function init() {
   const glamForm = document.getElementById('glamForm');
 
   // constants (same as original)
-  const MAX_FILES = 5;
-  const MAX_SIZE_MB = 5;
+  const MAX_FILES = 3;
+  const MAX_SIZE_MB = 3;
   const MAX_BYTES = MAX_SIZE_MB * 1024 * 1024;
   const ALLOWED_EXT = /\.(jpe?g|png)$/i;
   const BUCKET_NAME = STORAGE_BUCKET || 'uploads'; // prefer STORAGE_BUCKET from config.js
@@ -551,7 +593,7 @@ async function init() {
   if (glamNo) glamNo.addEventListener('change', updateGlam);
 
   // set upload note text if element exists
-  if (uploadNote) uploadNote.textContent = 'Up to 5 images • JPG/PNG • Max 5MB each';
+  if (uploadNote) uploadNote.textContent = 'Up to 3 images • JPG/PNG • Max 3MB each';
 
   // initial UI state
   updateGlam();
@@ -692,19 +734,27 @@ async function init() {
         if (files.length > 0) {
           if (!supabaseClient) throw new Error('Supabase client not available for uploads.');
 
+          // Create profile-specific folder using email hash
+          const emailHash = saved.email ? btoa(saved.email).replace(/[^a-zA-Z0-9]/g, '').substring(0, 12) : 'anonymous';
+          const profileFolder = `submissions/profile_${emailHash}`;
+          
           for (const f of files) {
             const safeName = makeSafeFilename(f.name);
-            const key = `submissions/${Date.now()}_${Math.random().toString(36).slice(2,8)}_${safeName}`;
+            const key = `${profileFolder}/${Date.now()}_${Math.random().toString(36).slice(2,8)}_${safeName}`;
             console.log('⬆️ Uploading', f.name, '->', key);
 
+            // Compress image before upload
+            const compressedFile = await compressImage(f);
+            
             console.log('📤 Uploading file:', {
               name: f.name,
               type: f.type,
-              size: f.size,
-              key: key
+              originalSize: f.size,
+              compressedSize: compressedFile.size,
+              compressionRatio: Math.round((1 - compressedFile.size / f.size) * 100) + '%'
             });
 
-            const { data, error } = await supabaseClient.storage.from(BUCKET_NAME).upload(key, f, {
+            const { data, error } = await supabaseClient.storage.from(BUCKET_NAME).upload(key, compressedFile, {
               cacheControl: '3600',
               upsert: false
             });

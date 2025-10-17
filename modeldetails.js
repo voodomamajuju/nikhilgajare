@@ -504,6 +504,24 @@ try {
         return { ok: false, error: submissionError };
       }
       
+      // Delete authentication user if exists
+      if (modelData && modelData.user_id) {
+        try {
+          console.log(`🔄 Deleting authentication user: ${modelData.user_id}`);
+          const { error: authError } = await supabaseClient.auth.admin.deleteUser(modelData.user_id);
+          
+          if (authError) {
+            console.error('❌ Error deleting auth user:', authError);
+            // Continue - database record is already deleted
+          } else {
+            console.log('✅ Authentication user deleted successfully');
+          }
+        } catch (authErr) {
+          console.error('❌ Network error deleting auth user:', authErr);
+          // Continue - database record is already deleted
+        }
+      }
+      
       console.log('✅ Model and all associated data deleted successfully');
       return { ok: true };
     } catch (err) {
@@ -615,7 +633,7 @@ try {
       deleteModelBtn?.addEventListener('click', async () => {
         // Show confirmation dialog
         const modelName = model?.name || 'this model';
-        const confirmed = confirm(`Are you sure you want to delete "${modelName}"?\n\nThis action cannot be undone and will permanently remove:\n• Model information\n• Contact details\n• Measurements\n• Photos (from database and storage)\n• Working status\n• Admin notes`);
+        const confirmed = confirm(`Are you sure you want to delete "${modelName}"?\n\nThis action cannot be undone and will permanently remove:\n• Model information\n• Contact details\n• Measurements\n• Photos (from database and storage)\n• Working status\n• Admin notes\n• Authentication user account (if exists)`);
         
         if (!confirmed) {
           return;

@@ -381,3 +381,61 @@ body {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
+/* Professional Disclaimer Box */
+.disclaimer-box {
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.disclaimer-box h3 {
+  color: #495057;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.disclaimer-box p {
+  color: #6c757d;
+  font-size: 0.85rem;
+  margin: 0.25rem 0;
+  line-height: 1.4;
+}
+
+/* Verification Section */
+.verification-section {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  color: #495057;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  margin: 0;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.terms-link {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.terms-link:hover {
+  text-decoration: underline;
+}
+

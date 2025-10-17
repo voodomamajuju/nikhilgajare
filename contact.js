@@ -90,11 +90,18 @@ function validateEmail(email) {
   
   const domain = email.split('@')[1]?.toLowerCase();
   
+  // Debug logging
+  console.log('Validating email:', email);
+  console.log('Extracted domain:', domain);
+  console.log('Domain in whitelist?', allowedDomains.includes(domain));
+  
   // Check if domain is in whitelist
   if (!allowedDomains.includes(domain)) {
+    console.log('Domain NOT in whitelist, blocking email');
     return { valid: false, message: 'Invalid email ID' };
   }
   
+  console.log('Domain in whitelist, allowing email');
   return { valid: true, message: 'Email looks good!' };
 }
 

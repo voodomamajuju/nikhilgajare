@@ -340,6 +340,22 @@
       #search { background: #2d2d2d; border-color: #404040; color: #fff; }
     }
     
+    .cleanup-btn {
+      background: #ffc107;
+      color: #000;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: background 0.3s ease;
+    }
+    
+    .cleanup-btn:hover {
+      background: #e0a800;
+    }
+    
     .logout-btn {
       background: #e74c3c;
       color: white;
@@ -367,6 +383,7 @@
       <div class="search-row">
         <!-- optional quick search by name -->
         <input id="search" placeholder="Search by name" aria-label="Search models by name" />
+        <button id="cleanupOrphanedBtn" class="cleanup-btn" onclick="cleanupOrphanedUsers()">🧹 Cleanup Orphaned Users</button>
         <button id="logoutBtn" class="logout-btn" onclick="handleLogout()">Sign Out</button>
       </div>
     </div>
@@ -381,8 +398,87 @@
   <script type="module" src="models.js"></script>
   
         <script type="module">
+          // Global cleanup function
+          window.cleanupOrphanedUsers = async function() {
+            if (!confirm('⚠️ This will delete all authentication users that have no submission data.\n\nContinue?')) {
+              return;
+            }
+            
+            try {
+              console.log('🧹 Starting orphaned users cleanup...');
+              
+              // Import config and Supabase client
+              const config = await import('./config.public.js');
+              const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
+              const supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+              
+              // Get all submissions with user_ids
+              const { data: submissions, error: submissionsError } = await supabase
+                .from('submissions')
+                .select('user_id');
+              
+              if (submissionsError) {
+                console.error('❌ Error fetching submissions:', submissionsError);
+                alert('Failed to fetch submissions. Check console for details.');
+                return;
+              }
+              
+              // Get all submission user_ids
+              const submissionUserIds = new Set(submissions.map(s => s.user_id).filter(Boolean));
+              console.log(`📋 Found ${submissionUserIds.size} users with submissions`);
+              
+              // Get all auth users (this requires admin privileges)
+              const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
+              
+              if (usersError) {
+                console.error('❌ Error fetching users:', usersError);
+                alert('Failed to fetch users. Make sure you have admin privileges.');
+                return;
+              }
+              
+              console.log(`👥 Found ${users.length} total auth users`);
+              
+              // Find orphaned users (auth users without submissions)
+              const orphanedUsers = users.filter(user => !submissionUserIds.has(user.id));
+              
+              if (orphanedUsers.length === 0) {
+                alert('✅ No orphaned users found! All auth users have submissions.');
+                return;
+              }
+              
+              console.log(`🗑️ Found ${orphanedUsers.length} orphaned users to delete`);
+              
+              // Delete orphaned users
+              let deletedCount = 0;
+              let failedCount = 0;
+              
+              for (const user of orphanedUsers) {
+                try {
+                  const { error: deleteError } = await supabase.auth.admin.deleteUser(user.id);
+                  if (deleteError) {
+                    console.error(`❌ Failed to delete user ${user.id}:`, deleteError);
+                    failedCount++;
+                  } else {
+                    console.log(`✅ Deleted orphaned user: ${user.email}`);
+                    deletedCount++;
+                  }
+                } catch (err) {
+                  console.error(`❌ Error deleting user ${user.id}:`, err);
+                  failedCount++;
+                }
+              }
+              
+              console.log(`🎉 Cleanup completed! Deleted: ${deletedCount}, Failed: ${failedCount}`);
+              alert(`✅ Cleanup completed!\n\n• Deleted: ${deletedCount} orphaned users\n• Failed: ${failedCount} users${failedCount > 0 ? '\n\nCheck console for details.' : ''}`);
+              
+            } catch (error) {
+              console.error('❌ Cleanup failed:', error);
+              alert('Cleanup failed. Check console for details.');
+            }
+          }
+
           // Global logout function
-          async function handleLogout() {
+          window.handleLogout = async function() {
             console.log('🔑 handleLogout called');
             try {
               // Import config and Supabase client
