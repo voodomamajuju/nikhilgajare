@@ -341,8 +341,8 @@
     }
     
     .cleanup-btn {
-      background: #ffc107;
-      color: #000;
+      background: #6c757d;
+      color: white;
       border: none;
       padding: 8px 16px;
       border-radius: 6px;
@@ -350,10 +350,11 @@
       font-size: 0.9rem;
       font-weight: 600;
       transition: background 0.3s ease;
+      white-space: nowrap;
     }
     
     .cleanup-btn:hover {
-      background: #e0a800;
+      background: #5a6268;
     }
     
     .logout-btn {
@@ -365,7 +366,7 @@
       cursor: pointer;
       font-size: 0.9rem;
       transition: background 0.3s ease;
-      margin-left: auto;
+      white-space: nowrap;
     }
     
     .logout-btn:hover {
@@ -383,7 +384,7 @@
       <div class="search-row">
         <!-- optional quick search by name -->
         <input id="search" placeholder="Search by name" aria-label="Search models by name" />
-        <button id="cleanupOrphanedBtn" class="cleanup-btn" onclick="cleanupOrphanedUsers()">🧹 Cleanup Orphaned Users</button>
+        <button id="cleanupOrphanedBtn" class="cleanup-btn" onclick="cleanupOrphanedUsers()">Cleanup </button>
         <button id="logoutBtn" class="logout-btn" onclick="handleLogout()">Sign Out</button>
       </div>
     </div>
@@ -468,7 +469,7 @@
                 }
               }
               
-              console.log(`🎉 Cleanup completed! Deleted: ${deletedCount}, Failed: ${failedCount}`);
+              console.log(` Cleanup completed! Deleted: ${deletedCount}, Failed: ${failedCount}`);
               alert(`✅ Cleanup completed!\n\n• Deleted: ${deletedCount} orphaned users\n• Failed: ${failedCount} users${failedCount > 0 ? '\n\nCheck console for details.' : ''}`);
               
             } catch (error) {

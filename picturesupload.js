@@ -482,8 +482,11 @@ async function updateSubmission() {
   let photoPaths = [...(submission.photo_paths || [])];
   
   if (photoFiles.length > 0) {
-    // Create profile-specific folder using submission ID
-    const profileFolder = `submissions/profile_${submission.id}`;
+    // Create profile-specific folder using person's name
+    const safeFolderName = submission.name 
+      ? submission.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase()
+      : `profile_${submission.id}`;
+    const profileFolder = `submissions/${safeFolderName}`;
     
     // Upload new photos
     for (const file of photoFiles) {
@@ -734,9 +737,11 @@ async function init() {
         if (files.length > 0) {
           if (!supabaseClient) throw new Error('Supabase client not available for uploads.');
 
-          // Create profile-specific folder using email hash
-          const emailHash = saved.email ? btoa(saved.email).replace(/[^a-zA-Z0-9]/g, '').substring(0, 12) : 'anonymous';
-          const profileFolder = `submissions/profile_${emailHash}`;
+          // Create profile-specific folder using person's name
+          const safeFolderName = saved.name 
+            ? saved.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase()
+            : (saved.email ? saved.email.split('@')[0].replace(/[^a-zA-Z0-9_-]/g, '') : 'anonymous');
+          const profileFolder = `submissions/${safeFolderName}_${Date.now().toString().slice(-6)}`;
           
           for (const f of files) {
             const safeName = makeSafeFilename(f.name);
