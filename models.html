@@ -384,7 +384,7 @@
       <div class="search-row">
         <!-- optional quick search by name -->
         <input id="search" placeholder="Search by name" aria-label="Search models by name" />
-        <button id="cleanupOrphanedBtn" class="cleanup-btn" onclick="cleanupOrphanedUsers()">Cleanup </button>
+        <button id="cleanupBtn" class="cleanup-btn" onclick="handleCleanup()">Cleanup</button>
         <button id="logoutBtn" class="logout-btn" onclick="handleLogout()">Sign Out</button>
       </div>
     </div>
@@ -399,84 +399,6 @@
   <script type="module" src="models.js"></script>
   
         <script type="module">
-          // Global cleanup function
-          window.cleanupOrphanedUsers = async function() {
-            if (!confirm('⚠️ This will delete all authentication users that have no submission data.\n\nContinue?')) {
-              return;
-            }
-            
-            try {
-              console.log('🧹 Starting orphaned users cleanup...');
-              
-              // Import config and Supabase client
-              const config = await import('./config.public.js');
-              const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
-              const supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
-              
-              // Get all submissions with user_ids
-              const { data: submissions, error: submissionsError } = await supabase
-                .from('submissions')
-                .select('user_id');
-              
-              if (submissionsError) {
-                console.error('❌ Error fetching submissions:', submissionsError);
-                alert('Failed to fetch submissions. Check console for details.');
-                return;
-              }
-              
-              // Get all submission user_ids
-              const submissionUserIds = new Set(submissions.map(s => s.user_id).filter(Boolean));
-              console.log(`📋 Found ${submissionUserIds.size} users with submissions`);
-              
-              // Get all auth users (this requires admin privileges)
-              const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
-              
-              if (usersError) {
-                console.error('❌ Error fetching users:', usersError);
-                alert('Failed to fetch users. Make sure you have admin privileges.');
-                return;
-              }
-              
-              console.log(`👥 Found ${users.length} total auth users`);
-              
-              // Find orphaned users (auth users without submissions)
-              const orphanedUsers = users.filter(user => !submissionUserIds.has(user.id));
-              
-              if (orphanedUsers.length === 0) {
-                alert('✅ No orphaned users found! All auth users have submissions.');
-                return;
-              }
-              
-              console.log(`🗑️ Found ${orphanedUsers.length} orphaned users to delete`);
-              
-              // Delete orphaned users
-              let deletedCount = 0;
-              let failedCount = 0;
-              
-              for (const user of orphanedUsers) {
-                try {
-                  const { error: deleteError } = await supabase.auth.admin.deleteUser(user.id);
-                  if (deleteError) {
-                    console.error(`❌ Failed to delete user ${user.id}:`, deleteError);
-                    failedCount++;
-                  } else {
-                    console.log(`✅ Deleted orphaned user: ${user.email}`);
-                    deletedCount++;
-                  }
-                } catch (err) {
-                  console.error(`❌ Error deleting user ${user.id}:`, err);
-                  failedCount++;
-                }
-              }
-              
-              console.log(` Cleanup completed! Deleted: ${deletedCount}, Failed: ${failedCount}`);
-              alert(`✅ Cleanup completed!\n\n• Deleted: ${deletedCount} orphaned users\n• Failed: ${failedCount} users${failedCount > 0 ? '\n\nCheck console for details.' : ''}`);
-              
-            } catch (error) {
-              console.error('❌ Cleanup failed:', error);
-              alert('Cleanup failed. Check console for details.');
-            }
-          }
 
           // Global logout function
           window.handleLogout = async function() {
@@ -505,6 +427,83 @@
           
           // Make handleLogout available globally
           window.handleLogout = handleLogout;
+          
+          // Global cleanup function
+          window.handleCleanup = async function() {
+            console.log('🧹 handleCleanup called');
+            try {
+              // Import config and Supabase client
+              const config = await import('./config.public.js');
+              const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
+              const supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+              
+              // Check if user is authenticated
+              const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+              if (sessionError || !session) {
+                alert('Please log in to use cleanup feature.');
+                window.location.href = 'login.html';
+                return;
+              }
+              
+              // Check if user is admin
+              const userEmail = session.user.email;
+              const isAdmin = userEmail === 'admin@example.com' || userEmail === 'nikhil.dg2003@gmail.com';
+              
+              if (!isAdmin) {
+                alert('Admin access required. Only administrators can use the cleanup feature.');
+                return;
+              }
+              
+              // Confirm action
+              if (!confirm('This will fetch all users from the database. Continue?')) {
+                return;
+              }
+              
+              // Try to fetch users from profiles table
+              let users = null;
+              let usersError = null;
+              
+              // First try profiles table
+              const profilesResult = await supabase
+                .from('profiles')
+                .select('id, email, created_at, updated_at')
+                .order('created_at', { ascending: false });
+              
+              if (profilesResult.error) {
+                console.warn('⚠️ Profiles table query failed:', profilesResult.error);
+                // Try without ordering in case created_at doesn't exist
+                const profilesResult2 = await supabase
+                  .from('profiles')
+                  .select('id, email');
+                
+                if (profilesResult2.error) {
+                  usersError = profilesResult2.error;
+                } else {
+                  users = profilesResult2.data;
+                }
+              } else {
+                users = profilesResult.data;
+              }
+              
+              if (usersError) {
+                console.error('❌ Failed to fetch users:', usersError);
+                alert('Failed to fetch users. Make sure you have admin privileges and the profiles table exists.\n\nError: ' + usersError.message);
+                return;
+              }
+              
+              // Show results
+              if (users && users.length > 0) {
+                alert(`Found ${users.length} user(s) in the database.`);
+                console.log('✅ Users fetched:', users);
+              } else {
+                alert('No users found in the database.');
+              }
+              
+            } catch (err) {
+              console.error('❌ Cleanup failed:', err);
+              alert('Cleanup failed: ' + err.message);
+            }
+          };
         </script>
 
 </body>
