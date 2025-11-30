@@ -177,20 +177,11 @@ function attachHandlers(supabaseClient) {
     // 1) Save in localStorage for the multi-step flow
     localStorage.setItem('formData', JSON.stringify(data));
 
-    // 2) Optionally insert now (commented)
-    /*
-    await saveToSupabase({
-      name: data.name,
-      insta: data.insta,
-      whatsapp: data.whatsapp,
-      chest: 0, bust: 0, waist: 0, hips: 0,
-      height_feet: 0, height_inches: 0, age: 0,
-      glam_makeup: false,
-      city: data.city,
-      landmark: data.landmark,
-      photo_paths: []
-    }, supabaseClient);
-    */
+    // 2) Preserve edit mode if we're editing
+    const isEditMode = sessionStorage.getItem('editingSubmission') || sessionStorage.getItem('editingSubmissionId');
+    if (isEditMode) {
+      console.log('📝 Edit mode detected, preserving edit data through flow');
+    }
 
     // 3) navigate to instructions / measurements page
     window.location.href = 'instructions.html';

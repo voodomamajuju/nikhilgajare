@@ -66,13 +66,45 @@ function attachHandlers() {
     if (uploadLink) uploadLink.scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
 
-  // Auto-reveal if measurements are already present
+  // Auto-reveal if measurements are already present OR if in edit mode
   (function autoRevealIfSaved() {
     const saved = getSavedFormData();
-    if (!saved) return;
-    const hasMeasurements = [saved.chest, saved.bust, saved.waist, saved.hips]
+    const isEditMode = sessionStorage.getItem('editingSubmission') || sessionStorage.getItem('editingSubmissionId');
+    const editModeLink = document.getElementById('editModeUploadLink');
+    
+    // Show upload link if measurements exist
+    const hasMeasurements = saved && [saved.chest, saved.bust, saved.waist, saved.hips]
       .some(v => v !== null && v !== undefined && v !== '');
-    if (hasMeasurements && uploadLink) uploadLink.style.display = 'inline-block';
+    
+    if (hasMeasurements && uploadLink) {
+      uploadLink.style.display = 'inline-block';
+    }
+    
+    // If in edit mode, show the edit mode upload link immediately
+    if (isEditMode && editModeLink) {
+      editModeLink.style.display = 'inline-block';
+      console.log('📝 Edit mode detected - showing direct upload link');
+    }
+    
+    // If in edit mode, also pre-fill the form with existing submission data
+    if (isEditMode) {
+      try {
+        const editingSubmissionData = sessionStorage.getItem('editingSubmission');
+        if (editingSubmissionData) {
+          const submission = JSON.parse(editingSubmissionData);
+          // Pre-fill form fields if submission has measurements
+          if (submission.chest && form.querySelector('#chest')) form.querySelector('#chest').value = submission.chest;
+          if (submission.bust && form.querySelector('#bust')) form.querySelector('#bust').value = submission.bust;
+          if (submission.waist && form.querySelector('#waist')) form.querySelector('#waist').value = submission.waist;
+          if (submission.hips && form.querySelector('#hips')) form.querySelector('#hips').value = submission.hips;
+          if (submission.height_feet && form.querySelector('#height_feet')) form.querySelector('#height_feet').value = submission.height_feet;
+          if (submission.height_inches && form.querySelector('#height_inches')) form.querySelector('#height_inches').value = submission.height_inches;
+          if (submission.age && form.querySelector('#age')) form.querySelector('#age').value = submission.age;
+        }
+      } catch (err) {
+        console.error('Error loading edit mode in measurements:', err);
+      }
+    }
   })();
 }
 
