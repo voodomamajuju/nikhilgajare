@@ -29,7 +29,6 @@
       
               <div class="auth-links">
                 <button id="signUpToggle" class="link-btn">Don't have an account? Sign Up</button>
-                <a href="form.html" id="startAppLink" class="link-btn" style="display: none; margin-top: 8px;">Start Model Application</a>
                 <button id="logoutBtn" class="link-btn logout" style="display: none;">Logout & Clear Session</button>
               </div>
     </div>
@@ -100,9 +99,8 @@
     const urlParams = new URLSearchParams(window.location.search);
     const shouldAuto = urlParams.get('auto') === '1'; // only auto-redirect when explicitly requested
     if (session) {
-      // Show logout button and start app link for signed-in users
+      // Show logout button for signed-in users
       document.getElementById('logoutBtn').style.display = 'block';
-      document.getElementById('startAppLink').style.display = 'inline-block';
       
       // Only auto-redirect after explicit flows (e.g., OAuth), and not from thank you page
       if (shouldAuto && urlParams.get('from') !== 'thankyou') {
@@ -146,7 +144,6 @@
         // Clear user role on logout
         sessionStorage.removeItem('userRole');
         document.getElementById('logoutBtn').style.display = 'none';
-        document.getElementById('startAppLink').style.display = 'none';
       }
     });
 
