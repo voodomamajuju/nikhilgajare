@@ -111,82 +111,84 @@
       status.style.display = 'block';
     }
     
-    // Check for email verification callback from Supabase
-    const urlParams = new URLSearchParams(window.location.search);
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    
-    // Check for Supabase auth callback (type=recovery or type=signup)
-    const type = urlParams.get('type') || hashParams.get('type');
-    const token = urlParams.get('token') || hashParams.get('access_token');
-    
-    if (type === 'signup' || type === 'recovery' || urlParams.get('verified') === '1') {
-      console.log('📧 Email verification callback detected:', { type, token: !!token });
+    // Initialize page - run after DOM is ready
+    async function initializePage() {
+      // Check for email verification callback from Supabase
+      const urlParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
       
-      // If there's a token, exchange it for a session
-      if (token && supabase) {
-        try {
-          const { data, error } = await supabase.auth.getSession();
-          if (error) {
-            console.error('Error getting session after verification:', error);
-          } else if (data.session) {
-            console.log('✅ Session created after email verification');
-            showStatus("✅ Email verified successfully! You can now proceed.", false);
-            // Redirect after a short delay
-            setTimeout(() => {
-              window.location.href = 'form.html';
-            }, 2000);
-          }
-        } catch (err) {
-          console.error('Error handling verification:', err);
-          showStatus("✅ Email verified! Please sign in to continue.", false);
-        }
-      } else {
-        showStatus("✅ Email verified successfully! You can now sign in.", false);
-      }
+      // Check for Supabase auth callback (type=recovery or type=signup)
+      const type = urlParams.get('type') || hashParams.get('type');
+      const token = urlParams.get('token') || hashParams.get('access_token');
       
-      // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-    
-    // Check if user is already logged in
-    let session = null;
-    if (supabase) {
-      try {
-        const { data } = await supabase.auth.getSession();
-        session = data?.session;
-      } catch (err) {
-        console.error('Error getting session:', err);
-      }
-    }
-    const shouldAuto = urlParams.get('auto') === '1'; // only auto-redirect when explicitly requested
-    if (session) {
-      // Show logout button for signed-in users
-      document.getElementById('logoutBtn').style.display = 'block';
-      
-      // Only auto-redirect after explicit flows (e.g., OAuth), and not from thank you page
-      if (shouldAuto && urlParams.get('from') !== 'thankyou') {
-        // Check if this is an admin by email
-        const userEmail = session.user.email;
-        console.log('🔍 Checking user email:', userEmail);
+      if (type === 'signup' || type === 'recovery' || urlParams.get('verified') === '1') {
+        console.log('📧 Email verification callback detected:', { type, token: !!token });
         
-        if (userEmail === 'admin@example.com' || userEmail === 'nikhil.dg2003@gmail.com') {
-          console.log('🔄 Admin email detected, redirecting to admin.html');
-          sessionStorage.setItem('userRole', 'admin');
-          window.location.href = 'admin.html';
+        // If there's a token, exchange it for a session
+        if (token && supabase) {
+          try {
+            const { data, error } = await supabase.auth.getSession();
+            if (error) {
+              console.error('Error getting session after verification:', error);
+            } else if (data.session) {
+              console.log('✅ Session created after email verification');
+              showStatus("✅ Email verified successfully! You can now proceed.", false);
+              // Redirect after a short delay
+              setTimeout(() => {
+                window.location.href = 'form.html';
+              }, 2000);
+            }
+          } catch (err) {
+            console.error('Error handling verification:', err);
+            showStatus("✅ Email verified! Please sign in to continue.", false);
+          }
         } else {
-          console.log('👤 Regular user detected, checking submission');
-          sessionStorage.setItem('userRole', 'user');
-          await redirectToApp();
+          showStatus("✅ Email verified successfully! You can now sign in.", false);
         }
-      } else {
-        console.log('ℹ️ Session present, staying on login (no auto param).');
+        
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
-    }
+      
+      // Check if user is already logged in
+      let session = null;
+      if (supabase) {
+        try {
+          const { data } = await supabase.auth.getSession();
+          session = data?.session;
+        } catch (err) {
+          console.error('Error getting session:', err);
+        }
+      }
+      const shouldAuto = urlParams.get('auto') === '1'; // only auto-redirect when explicitly requested
+      if (session) {
+        // Show logout button for signed-in users
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) logoutBtn.style.display = 'block';
+        
+        // Only auto-redirect after explicit flows (e.g., OAuth), and not from thank you page
+        if (shouldAuto && urlParams.get('from') !== 'thankyou') {
+          // Check if this is an admin by email
+          const userEmail = session.user.email;
+          console.log('🔍 Checking user email:', userEmail);
+          
+          if (userEmail === 'admin@example.com' || userEmail === 'nikhil.dg2003@gmail.com') {
+            console.log('🔄 Admin email detected, redirecting to admin.html');
+            sessionStorage.setItem('userRole', 'admin');
+            window.location.href = 'admin.html';
+          } else {
+            console.log('👤 Regular user detected, checking submission');
+            sessionStorage.setItem('userRole', 'user');
+            await redirectToApp();
+          }
+        } else {
+          console.log('ℹ️ Session present, staying on login (no auto param).');
+        }
+      }
 
-
-    // Listen for auth changes
-    if (supabase) {
-      supabase.auth.onAuthStateChange(async (event, session) => {
+      // Listen for auth changes
+      if (supabase) {
+        supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔍 Auth state changed:', event, session?.user?.email);
       if (event === 'SIGNED_IN' && session) {
         console.log('✅ User signed in, redirecting...');
@@ -206,15 +208,14 @@
         // Clear user role on logout
         sessionStorage.removeItem('userRole');
         document.getElementById('logoutBtn').style.display = 'none';
+        }
+      });
+      } else {
+        console.error('❌ Cannot set up auth state listener - Supabase not initialized');
       }
-    });
-    } else {
-      console.error('❌ Cannot set up auth state listener - Supabase not initialized');
-    }
 
-
-    // Google OAuth - ensure button exists before attaching listener
-    const googleSignInBtn = document.getElementById("googleSignIn");
+      // Google OAuth - ensure button exists before attaching listener
+      const googleSignInBtn = document.getElementById("googleSignIn");
     if (googleSignInBtn) {
       googleSignInBtn.addEventListener("click", async () => {
         if (!supabase) {
@@ -242,13 +243,12 @@
         }
       });
       console.log('✅ Google sign-in button event listener attached');
-    } else {
-      console.error('❌ Google sign-in button not found!');
-    }
+      } else {
+        console.error('❌ Google sign-in button not found!');
+      }
 
-
-    // Logout button
-    const logoutBtn = document.getElementById("logoutBtn");
+      // Logout button
+      const logoutBtn = document.getElementById("logoutBtn");
     if (logoutBtn) {
       logoutBtn.addEventListener("click", async () => {
         if (!supabase) {
@@ -269,8 +269,8 @@
     });
     }
 
-    // Sign up/Sign in toggle - ensure it's attached after DOM is ready
-    const signUpToggleBtn = document.getElementById("signUpToggle");
+      // Sign up/Sign in toggle - ensure it's attached after DOM is ready
+      const signUpToggleBtn = document.getElementById("signUpToggle");
     if (signUpToggleBtn) {
       signUpToggleBtn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -292,12 +292,12 @@
         }
       });
       console.log('✅ Sign up toggle button event listener attached');
-    } else {
-      console.error('❌ Sign up toggle button not found!');
-    }
+      } else {
+        console.error('❌ Sign up toggle button not found!');
+      }
 
-    // Email validation function (same as contact.js) - Enhanced version
-    function validateEmail(email) {
+      // Email validation function (same as contact.js) - Enhanced version
+      function validateEmail(email) {
       if (!email) return { valid: false, message: 'Email is required' };
       
       // Trim whitespace
@@ -422,14 +422,14 @@
       }
       
       return { valid: true, message: 'Email looks good!' };
-    }
+      }
 
-    // Email/Password authentication - ensure form exists
-    const emailForm = document.getElementById("emailForm");
-    if (!emailForm) {
-      console.error('❌ Email form not found!');
-    } else {
-      emailForm.addEventListener("submit", async (e) => {
+      // Email/Password authentication - ensure form exists
+      const emailForm = document.getElementById("emailForm");
+      if (!emailForm) {
+        console.error('❌ Email form not found!');
+      } else {
+        emailForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
@@ -505,26 +505,34 @@
         console.error('❌ Auth error:', error);
         showStatus("Authentication failed: " + error.message, true);
       }
-    });
-    console.log('✅ Email form event listener attached');
+        });
+        console.log('✅ Email form event listener attached');
+      }
+      
+      // If Supabase failed to initialize, show error
+      if (!supabase) {
+        console.error('❌ Cannot proceed - Supabase not initialized');
+        // Still allow form to show, but disable functionality
+        const emailForm = document.getElementById("emailForm");
+        if (emailForm) {
+          emailForm.style.opacity = '0.5';
+          emailForm.style.pointerEvents = 'none';
+        }
+        const googleBtn = document.getElementById("googleSignIn");
+        if (googleBtn) {
+          googleBtn.style.opacity = '0.5';
+          googleBtn.style.pointerEvents = 'none';
+        }
+      } else {
+        console.log('✅ All systems ready - authentication available');
+      }
     }
     
-    // If Supabase failed to initialize, show error
-    if (!supabase) {
-      console.error('❌ Cannot proceed - Supabase not initialized');
-      // Still allow form to show, but disable functionality
-      const emailForm = document.getElementById("emailForm");
-      if (emailForm) {
-        emailForm.style.opacity = '0.5';
-        emailForm.style.pointerEvents = 'none';
-      }
-      const googleBtn = document.getElementById("googleSignIn");
-      if (googleBtn) {
-        googleBtn.style.opacity = '0.5';
-        googleBtn.style.pointerEvents = 'none';
-      }
+    // Run initialization when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializePage);
     } else {
-      console.log('✅ All systems ready - authentication available');
+      initializePage();
     }
   </script>
 </body>
