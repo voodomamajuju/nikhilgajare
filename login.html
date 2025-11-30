@@ -94,9 +94,16 @@
       status.style.display = 'block';
     }
     
+    // Check for email verification success
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('verified') === '1') {
+      showStatus("✅ Email verified successfully! You can now proceed.", false);
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
     // Check if user is already logged in
     const { data: { session } } = await supabase.auth.getSession();
-    const urlParams = new URLSearchParams(window.location.search);
     const shouldAuto = urlParams.get('auto') === '1'; // only auto-redirect when explicitly requested
     if (session) {
       // Show logout button for signed-in users
@@ -192,14 +199,53 @@
       }
     });
 
-    // Email validation function (same as contact.js)
+    // Email validation function (same as contact.js) - Enhanced version
     function validateEmail(email) {
       if (!email) return { valid: false, message: 'Email is required' };
       
-      // Basic format validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      // Trim whitespace
+      email = email.trim();
+      
+      // Check for common typos
+      if (email.includes(' ')) {
+        return { valid: false, message: 'Email cannot contain spaces' };
+      }
+      
+      if (email.includes('..')) {
+        return { valid: false, message: 'Email cannot contain consecutive dots' };
+      }
+      
+      if (email.startsWith('.') || email.startsWith('@')) {
+        return { valid: false, message: 'Email cannot start with . or @' };
+      }
+      
+      if (email.endsWith('.') || email.endsWith('@')) {
+        return { valid: false, message: 'Email cannot end with . or @' };
+      }
+      
+      // Enhanced format validation - more strict
+      const emailRegex = /^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?@[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?\.[a-zA-Z]{2,}$/;
       if (!emailRegex.test(email)) {
-        return { valid: false, message: 'Please enter a valid email format' };
+        return { valid: false, message: 'Please enter a valid email format (e.g., name@example.com)' };
+      }
+      
+      // Check email length
+      if (email.length > 320) {
+        return { valid: false, message: 'Email is too long (maximum 320 characters)' };
+      }
+      
+      const [localPart, domain] = email.split('@');
+      if (localPart.length > 64) {
+        return { valid: false, message: 'Email username part is too long' };
+      }
+      if (domain && domain.length > 255) {
+        return { valid: false, message: 'Email domain is too long' };
+      }
+      
+      // Check for valid TLD
+      const domainParts = domain?.split('.');
+      if (!domainParts || domainParts.length < 2 || domainParts[domainParts.length - 1].length < 2) {
+        return { valid: false, message: 'Email must have a valid domain (e.g., .com, .org)' };
       }
       
       // Whitelist of popular, legitimate email domains
@@ -269,9 +315,13 @@
       
       const domain = email.split('@')[1]?.toLowerCase();
       
+      if (!domain) {
+        return { valid: false, message: 'Email must contain @ symbol' };
+      }
+      
       // Check if domain is in whitelist
       if (!allowedDomains.includes(domain)) {
-        return { valid: false, message: 'Invalid email ID' };
+        return { valid: false, message: `Email domain "${domain}" is not allowed. Please use a valid email provider.` };
       }
       
       return { valid: true, message: 'Email looks good!' };
@@ -301,16 +351,30 @@
 
       try {
         if (isSignUp) {
-          // Allow sign up for regular users - redirect to main form
-          const { data, error } = await supabase.auth.signUp({ email, password });
-          if (error) throw error;
-          showStatus("Sign up successful! Redirecting to form...");
+          // Sign up with email confirmation required
+          const { data, error } = await supabase.auth.signUp({ 
+            email, 
+            password,
+            options: {
+              emailRedirectTo: window.location.origin + '/login.html?verified=1'
+            }
+          });
           
-                  // Direct redirect to form.html for sign up
-                  setTimeout(() => {
-                    console.log('🎉 Sign up completed, redirecting to form.html');
-                    window.location.href = 'form.html';
-                  }, 1000);
+          if (error) throw error;
+          
+          // Check if email confirmation is required
+          if (data.user && !data.session) {
+            // Email confirmation required
+            showStatus("✅ Sign up successful! Please check your email to verify your account before continuing.", false);
+            return; // Don't redirect, wait for email verification
+          } else if (data.session) {
+            // Email confirmation not required (or already verified)
+            showStatus("Sign up successful! Redirecting to form...");
+            setTimeout(() => {
+              console.log('🎉 Sign up completed, redirecting to form.html');
+              window.location.href = 'form.html';
+            }, 1000);
+          }
         } else {
           // Sign in - redirect to existing submission or main form
           const { data, error } = await supabase.auth.signInWithPassword({ email, password });

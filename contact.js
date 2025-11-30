@@ -13,14 +13,53 @@ function createSupabaseClient() {
   return null;
 }
 
-// Enhanced email validation - Whitelist approach
+// Enhanced email validation - Whitelist approach with improved format checking
 function validateEmail(email) {
   if (!email) return { valid: false, message: 'Email is required' };
   
-  // Basic format validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // Trim whitespace
+  email = email.trim();
+  
+  // Check for common typos
+  if (email.includes(' ')) {
+    return { valid: false, message: 'Email cannot contain spaces' };
+  }
+  
+  if (email.includes('..')) {
+    return { valid: false, message: 'Email cannot contain consecutive dots' };
+  }
+  
+  if (email.startsWith('.') || email.startsWith('@')) {
+    return { valid: false, message: 'Email cannot start with . or @' };
+  }
+  
+  if (email.endsWith('.') || email.endsWith('@')) {
+    return { valid: false, message: 'Email cannot end with . or @' };
+  }
+  
+  // Enhanced format validation - more strict
+  const emailRegex = /^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?@[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?\.[a-zA-Z]{2,}$/;
   if (!emailRegex.test(email)) {
-    return { valid: false, message: 'Please enter a valid email format' };
+    return { valid: false, message: 'Please enter a valid email format (e.g., name@example.com)' };
+  }
+  
+  // Check email length (RFC 5321 limit is 320 characters total, local part max 64, domain max 255)
+  if (email.length > 320) {
+    return { valid: false, message: 'Email is too long (maximum 320 characters)' };
+  }
+  
+  const [localPart, domain] = email.split('@');
+  if (localPart.length > 64) {
+    return { valid: false, message: 'Email username part is too long' };
+  }
+  if (domain && domain.length > 255) {
+    return { valid: false, message: 'Email domain is too long' };
+  }
+  
+  // Check for valid TLD (at least 2 characters)
+  const domainParts = domain?.split('.');
+  if (!domainParts || domainParts.length < 2 || domainParts[domainParts.length - 1].length < 2) {
+    return { valid: false, message: 'Email must have a valid domain (e.g., .com, .org)' };
   }
   
   // Whitelist of popular, legitimate email domains
@@ -90,6 +129,10 @@ function validateEmail(email) {
   
   const domain = email.split('@')[1]?.toLowerCase();
   
+  if (!domain) {
+    return { valid: false, message: 'Email must contain @ symbol' };
+  }
+  
   // Debug logging
   console.log('Validating email:', email);
   console.log('Extracted domain:', domain);
@@ -98,7 +141,7 @@ function validateEmail(email) {
   // Check if domain is in whitelist
   if (!allowedDomains.includes(domain)) {
     console.log('Domain NOT in whitelist, blocking email');
-    return { valid: false, message: 'Invalid email ID' };
+    return { valid: false, message: `Email domain "${domain}" is not allowed. Please use a valid email provider.` };
   }
   
   console.log('Domain in whitelist, allowing email');
@@ -134,23 +177,48 @@ function attachHandlers(supabaseClient) {
   const form = document.getElementById('contactForm');
   if (!form) return;
 
-  // Add real-time email validation
+  // Add real-time email validation with visual feedback
   const emailInput = document.getElementById('email');
+  const emailError = document.getElementById('emailError');
+  const emailSuccess = document.getElementById('emailSuccess');
+  
   if (emailInput) {
-    emailInput.addEventListener('blur', function() {
-      const email = this.value.trim();
-      if (email) {
-        const validation = validateEmail(email);
-        if (!validation.valid) {
-          this.style.borderColor = '#dc3545';
-          this.title = validation.message;
-        } else {
-          this.style.borderColor = '#28a745';
-          this.title = 'Email looks good!';
+    // Validate on blur and input
+    const validateEmailInput = () => {
+      const email = emailInput.value.trim();
+      
+      // Hide previous messages
+      if (emailError) emailError.style.display = 'none';
+      if (emailSuccess) emailSuccess.style.display = 'none';
+      
+      if (!email) {
+        emailInput.style.borderColor = '';
+        emailInput.title = '';
+        return;
+      }
+      
+      const validation = validateEmail(email);
+      if (!validation.valid) {
+        emailInput.style.borderColor = '#dc3545';
+        emailInput.title = validation.message;
+        if (emailError) {
+          emailError.textContent = validation.message;
+          emailError.style.display = 'block';
         }
+        if (emailSuccess) emailSuccess.style.display = 'none';
       } else {
-        this.style.borderColor = '';
-        this.title = '';
+        emailInput.style.borderColor = '#28a745';
+        emailInput.title = 'Email looks good!';
+        if (emailError) emailError.style.display = 'none';
+        if (emailSuccess) emailSuccess.style.display = 'block';
+      }
+    };
+    
+    emailInput.addEventListener('blur', validateEmailInput);
+    emailInput.addEventListener('input', function() {
+      // Only show error on input if user has started typing and left the field
+      if (this.value.length > 0 && document.activeElement !== this) {
+        validateEmailInput();
       }
     });
   }
@@ -173,6 +241,27 @@ function attachHandlers(supabaseClient) {
     }
     
     console.log('Email validation passed, proceeding...');
+
+    // Check if user is authenticated and email is verified
+    if (supabaseClient) {
+      try {
+        const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+        
+        if (user) {
+          // Check if email is verified
+          if (!user.email_confirmed_at) {
+            alert('⚠️ Please verify your email address before submitting. Check your inbox for the verification email.');
+            return;
+          }
+          console.log('✅ User email is verified');
+        } else if (userError) {
+          console.log('User not authenticated, proceeding without verification check');
+        }
+      } catch (err) {
+        console.error('Error checking email verification:', err);
+        // Continue anyway if check fails
+      }
+    }
 
     // 1) Save in localStorage for the multi-step flow
     localStorage.setItem('formData', JSON.stringify(data));

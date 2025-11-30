@@ -694,6 +694,22 @@ async function init() {
       console.log('▶️ Submit clicked');
 
       try {
+        // Check if user is authenticated and email is verified before submission
+        if (supabaseClient) {
+          try {
+            const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+            
+            if (user && !user.email_confirmed_at) {
+              setLoading(submitBtn, false);
+              alert('⚠️ Please verify your email address before submitting. Check your inbox for the verification email sent during signup.');
+              return;
+            }
+          } catch (err) {
+            console.error('Error checking email verification:', err);
+            // Continue if check fails (might be non-authenticated user)
+          }
+        }
+        
         // load saved contact+measure data from localStorage
         const saved = JSON.parse(localStorage.getItem('formData') || '{}');
 
