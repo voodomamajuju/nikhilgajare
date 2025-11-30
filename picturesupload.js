@@ -697,16 +697,29 @@ async function init() {
         // Check if user is authenticated and email is verified before submission
         if (supabaseClient) {
           try {
-            const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+            const { data: { session } } = await supabaseClient.auth.getSession();
             
-            if (user && !user.email_confirmed_at) {
-              setLoading(submitBtn, false);
-              alert('⚠️ Please verify your email address before submitting. Check your inbox for the verification email sent during signup.');
-              return;
+            if (session && session.user) {
+              const user = session.user;
+              // Check if email is verified (Supabase uses email_confirmed_at)
+              const isEmailVerified = user.email_confirmed_at !== null;
+              
+              if (!isEmailVerified) {
+                setLoading(submitBtn, false);
+                alert('⚠️ Please verify your email address before submitting.\n\nCheck your inbox for the verification email sent during signup, or sign in again after verifying.');
+                console.log('❌ Email not verified:', { 
+                  email: user.email,
+                  email_confirmed_at: user.email_confirmed_at
+                });
+                return;
+              }
+              console.log('✅ User email is verified:', user.email);
+            } else {
+              console.log('ℹ️ User not authenticated, proceeding without verification check');
             }
           } catch (err) {
             console.error('Error checking email verification:', err);
-            // Continue if check fails (might be non-authenticated user)
+            // Continue if check fails
           }
         }
         

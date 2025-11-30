@@ -243,19 +243,29 @@ function attachHandlers(supabaseClient) {
     console.log('Email validation passed, proceeding...');
 
     // Check if user is authenticated and email is verified
+    // Note: This only applies if user is logged in. Non-authenticated users can proceed.
     if (supabaseClient) {
       try {
-        const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+        const { data: { session } } = await supabaseClient.auth.getSession();
         
-        if (user) {
-          // Check if email is verified
-          if (!user.email_confirmed_at) {
-            alert('⚠️ Please verify your email address before submitting. Check your inbox for the verification email.');
+        if (session && session.user) {
+          const user = session.user;
+          // Check if email is verified (Supabase uses email_confirmed_at)
+          // If email confirmations are disabled in Supabase, this will be null but user is still valid
+          const isEmailVerified = user.email_confirmed_at !== null;
+          
+          if (!isEmailVerified) {
+            alert('⚠️ Please verify your email address before submitting.\n\nCheck your inbox for the verification email sent during signup, or sign in again after verifying.');
+            console.log('❌ Email not verified:', { 
+              email: user.email,
+              email_confirmed_at: user.email_confirmed_at,
+              user_id: user.id
+            });
             return;
           }
-          console.log('✅ User email is verified');
-        } else if (userError) {
-          console.log('User not authenticated, proceeding without verification check');
+          console.log('✅ User email is verified:', user.email);
+        } else {
+          console.log('ℹ️ User not authenticated, proceeding without verification check');
         }
       } catch (err) {
         console.error('Error checking email verification:', err);

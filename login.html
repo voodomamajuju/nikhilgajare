@@ -28,8 +28,8 @@
       </form>
       
               <div class="auth-links">
-                <button id="signUpToggle" class="link-btn">Don't have an account? Sign Up</button>
-                <button id="logoutBtn" class="link-btn logout" style="display: none;">Logout & Clear Session</button>
+                <button type="button" id="signUpToggle" class="link-btn">Don't have an account? Sign Up</button>
+                <button type="button" id="logoutBtn" class="link-btn logout" style="display: none;">Logout & Clear Session</button>
               </div>
     </div>
     
@@ -94,10 +94,39 @@
       status.style.display = 'block';
     }
     
-    // Check for email verification success
+    // Check for email verification callback from Supabase
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('verified') === '1') {
-      showStatus("✅ Email verified successfully! You can now proceed.", false);
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    
+    // Check for Supabase auth callback (type=recovery or type=signup)
+    const type = urlParams.get('type') || hashParams.get('type');
+    const token = urlParams.get('token') || hashParams.get('access_token');
+    
+    if (type === 'signup' || type === 'recovery' || urlParams.get('verified') === '1') {
+      console.log('📧 Email verification callback detected:', { type, token: !!token });
+      
+      // If there's a token, exchange it for a session
+      if (token) {
+        try {
+          const { data, error } = await supabase.auth.getSession();
+          if (error) {
+            console.error('Error getting session after verification:', error);
+          } else if (data.session) {
+            console.log('✅ Session created after email verification');
+            showStatus("✅ Email verified successfully! You can now proceed.", false);
+            // Redirect after a short delay
+            setTimeout(() => {
+              window.location.href = 'form.html';
+            }, 2000);
+          }
+        } catch (err) {
+          console.error('Error handling verification:', err);
+          showStatus("✅ Email verified! Please sign in to continue.", false);
+        }
+      } else {
+        showStatus("✅ Email verified successfully! You can now sign in.", false);
+      }
+      
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
     }
@@ -185,19 +214,32 @@
       }
     });
 
-    // Sign up/Sign in toggle
-    document.getElementById("signUpToggle").addEventListener("click", () => {
-      const submitBtn = document.querySelector(".email-form .auth-btn");
-      const isCurrentlySignUp = submitBtn.textContent === "Sign Up";
-      
-      if (isCurrentlySignUp) {
-        submitBtn.textContent = "Sign In";
-        document.getElementById("signUpToggle").textContent = "Don't have an account? Sign Up";
-      } else {
-        submitBtn.textContent = "Sign Up";
-        document.getElementById("signUpToggle").textContent = "Already have an account? Sign In";
-      }
-    });
+    // Sign up/Sign in toggle - ensure it's attached after DOM is ready
+    const signUpToggleBtn = document.getElementById("signUpToggle");
+    if (signUpToggleBtn) {
+      signUpToggleBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const submitBtn = document.querySelector(".email-form .auth-btn");
+        if (!submitBtn) {
+          console.error('Submit button not found');
+          return;
+        }
+        
+        const isCurrentlySignUp = submitBtn.textContent.trim() === "Sign Up";
+        console.log('Toggle clicked, currently sign up mode:', isCurrentlySignUp);
+        
+        if (isCurrentlySignUp) {
+          submitBtn.textContent = "Sign In";
+          signUpToggleBtn.textContent = "Don't have an account? Sign Up";
+        } else {
+          submitBtn.textContent = "Sign Up";
+          signUpToggleBtn.textContent = "Already have an account? Sign In";
+        }
+      });
+      console.log('✅ Sign up toggle button event listener attached');
+    } else {
+      console.error('❌ Sign up toggle button not found!');
+    }
 
     // Email validation function (same as contact.js) - Enhanced version
     function validateEmail(email) {
@@ -352,20 +394,30 @@
       try {
         if (isSignUp) {
           // Sign up with email confirmation required
+          // Use the current origin (works for both custom domain and netlify)
+          const redirectUrl = window.location.origin + '/login.html?verified=1';
+          console.log('🔗 Email redirect URL:', redirectUrl);
+          
           const { data, error } = await supabase.auth.signUp({ 
             email, 
             password,
             options: {
-              emailRedirectTo: window.location.origin + '/login.html?verified=1'
+              emailRedirectTo: redirectUrl
             }
           });
           
-          if (error) throw error;
+          if (error) {
+            console.error('Sign up error:', error);
+            throw error;
+          }
+          
+          console.log('Sign up response:', { user: !!data.user, session: !!data.session });
           
           // Check if email confirmation is required
           if (data.user && !data.session) {
             // Email confirmation required
-            showStatus("✅ Sign up successful! Please check your email to verify your account before continuing.", false);
+            showStatus("✅ Sign up successful! Please check your email to verify your account. Click the link in the email to continue.", false);
+            console.log('📧 Email verification required, user:', data.user.email);
             return; // Don't redirect, wait for email verification
           } else if (data.session) {
             // Email confirmation not required (or already verified)
@@ -374,6 +426,9 @@
               console.log('🎉 Sign up completed, redirecting to form.html');
               window.location.href = 'form.html';
             }, 1000);
+          } else {
+            // Fallback
+            showStatus("Sign up successful! Please check your email.", false);
           }
         } else {
           // Sign in - redirect to existing submission or main form
