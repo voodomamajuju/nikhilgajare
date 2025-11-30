@@ -25,7 +25,6 @@
       </p>
 
       <div class="actions" style="margin-top:2rem; text-align:center;">
-        <button id="editSubmissionBtn" class="btn btn-primary" style="margin-right:10px;">Edit Submission</button>
         <a href="login.html?from=thankyou" class="btn btn-secondary">Back to Login</a>
       </div>
     </section>
@@ -38,68 +37,6 @@
     
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     
-    // Check for existing submission and show edit button if available
-    async function checkForExistingSubmission() {
-      try {
-        // Check if user is authenticated
-        const { data: { user } } = await supabase.auth.getUser();
-        let submission = null;
-        
-        if (user) {
-          // Check by user account
-          const { data: userSubmission, error: userError } = await supabase
-            .from('submissions')
-            .select('*')
-            .eq('user_id', user.id)
-            .maybeSingle();
-            
-          if (userSubmission && !userError) {
-            submission = userSubmission;
-          }
-        }
-        
-        // If no user submission, check by email from localStorage
-        if (!submission) {
-          const savedData = JSON.parse(localStorage.getItem('formData') || '{}');
-          const email = savedData.email;
-          
-          if (email) {
-            const { data: emailSubmission, error: emailError } = await supabase
-              .from('submissions')
-              .select('*')
-              .eq('email', email)
-              .maybeSingle();
-              
-            if (emailSubmission && !emailError) {
-              submission = emailSubmission;
-            }
-          }
-        }
-        
-        if (submission) {
-          // Show edit button
-          const editBtn = document.getElementById('editSubmissionBtn');
-          editBtn.style.display = 'inline-block';
-          editBtn.addEventListener('click', () => {
-            // Store submission data and redirect to form for editing
-            sessionStorage.setItem('editingSubmission', JSON.stringify(submission));
-            window.location.href = 'form.html';
-          });
-        } else {
-          // Hide edit button if no submission found
-          const editBtn = document.getElementById('editSubmissionBtn');
-          editBtn.style.display = 'none';
-        }
-      } catch (error) {
-        console.error('Error checking for existing submission:', error);
-        // Hide edit button on error
-        const editBtn = document.getElementById('editSubmissionBtn');
-        editBtn.style.display = 'none';
-      }
-    }
-    
-    // Run check when page loads
-    document.addEventListener('DOMContentLoaded', checkForExistingSubmission);
   </script>
 </body>
 

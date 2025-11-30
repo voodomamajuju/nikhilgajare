@@ -259,9 +259,6 @@ function showAlreadySubmittedMessage(checkResult) {
           </div>
           
           <div class="action-buttons">
-            <button class="btn btn-primary" onclick="showEditForm()">
-              ✏️ Edit Submission
-            </button>
             <button class="btn btn-secondary" onclick="window.location.href='login.html'">
               Back to Login
             </button>
