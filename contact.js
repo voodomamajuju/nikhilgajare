@@ -62,6 +62,28 @@ function validateEmail(email) {
     return { valid: false, message: 'Email must have a valid domain (e.g., .com, .org)' };
   }
   
+  // Filter out inappropriate content in email addresses
+  const inappropriateWords = [
+    'fuck', 'fuckboy', 'fuckgirl', 'fucking', 'shit', 'asshole', 'bitch', 'bastard',
+    'damn', 'hell', 'crap', 'piss', 'dick', 'cock', 'pussy', 'whore', 'slut',
+    'nigger', 'nigga', 'retard', 'gay', 'lesbian', 'homo', 'fag', 'tranny',
+    'kill', 'murder', 'death', 'suicide', 'bomb', 'terrorist', 'hack', 'scam',
+    'spam', 'fake', 'test123', 'temp', 'temporary', 'throwaway', 'trash',
+    'iamyourdad', 'iamyourmom', 'yourmom', 'yourdad', 'yourmum', 'yourfather',
+    'lavdalasan', 'bullshit', 'crap', 'stupid', 'idiot', 'moron', 'dumb'
+  ];
+  
+  const emailLower = email.toLowerCase();
+  const localPartLower = localPart.toLowerCase();
+  const domainLower = domain.toLowerCase();
+  
+  // Check for inappropriate words in local part or domain
+  for (const word of inappropriateWords) {
+    if (localPartLower.includes(word) || domainLower.includes(word)) {
+      return { valid: false, message: 'Email contains inappropriate content. Please use a professional email address.' };
+    }
+  }
+  
   // Email verification is handled by Supabase, so we just validate format
   return { valid: true, message: 'Email looks good!' };
 }
