@@ -81,9 +81,9 @@
           const editBtn = document.getElementById('editSubmissionBtn');
           editBtn.style.display = 'inline-block';
           editBtn.addEventListener('click', () => {
-            // Store submission data and redirect to edit mode
+            // Store submission data and redirect to form for editing
             sessionStorage.setItem('editingSubmission', JSON.stringify(submission));
-            window.location.href = 'picturesupload.html';
+            window.location.href = 'form.html';
           });
         } else {
           // Hide edit button if no submission found

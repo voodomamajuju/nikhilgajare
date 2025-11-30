@@ -197,6 +197,50 @@ function attachHandlers(supabaseClient) {
   });
 }
 
+// Check for edit mode and pre-fill form
+function loadEditMode() {
+  try {
+    const editingSubmissionData = sessionStorage.getItem('editingSubmission');
+    if (editingSubmissionData) {
+      const submission = JSON.parse(editingSubmissionData);
+      console.log('📝 Loading edit mode with submission:', submission);
+      
+      // Pre-fill form fields
+      const nameInput = document.getElementById('name');
+      const instaInput = document.getElementById('insta');
+      const whatsappInput = document.getElementById('whatsapp');
+      const emailInput = document.getElementById('email');
+      const cityInput = document.getElementById('city');
+      const landmarkInput = document.getElementById('landmark');
+      
+      if (nameInput && submission.name) nameInput.value = submission.name;
+      if (instaInput && submission.insta) instaInput.value = submission.insta;
+      if (whatsappInput && submission.whatsapp) whatsappInput.value = submission.whatsapp;
+      if (emailInput && submission.email) emailInput.value = submission.email;
+      if (cityInput && submission.city) cityInput.value = submission.city;
+      if (landmarkInput && submission.landmark) landmarkInput.value = submission.landmark;
+      
+      // Update page title
+      const title = document.querySelector('h1.title');
+      if (title) {
+        title.textContent = 'Edit Your Submission';
+      }
+      
+      // Store submission ID for later use
+      if (submission.id) {
+        sessionStorage.setItem('editingSubmissionId', submission.id);
+      }
+      
+      // Keep the full submission data for the rest of the flow
+      sessionStorage.setItem('editingSubmission', editingSubmissionData);
+      
+      console.log('✅ Form pre-filled with submission data');
+    }
+  } catch (err) {
+    console.error('❌ Error loading edit mode:', err);
+  }
+}
+
 // Initialize once DOM is ready and SDK is loaded (deferred)
 (async function init() {
   if (document.readyState === 'loading') {
@@ -207,6 +251,9 @@ function attachHandlers(supabaseClient) {
   if (!supabaseClient) {
     console.info('Supabase client not available; operating in localStorage-only mode.');
   }
+
+  // Load edit mode if available
+  loadEditMode();
 
   attachHandlers(supabaseClient);
 })();

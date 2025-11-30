@@ -231,7 +231,7 @@
         <div id="noSubmission" class="no-submission" style="display: none;">
             <h2>No Submission Found</h2>
             <div class="actions">
-                <a href="index.html" class="btn btn-primary">Create New Submission</a>
+                <a href="form.html" class="btn btn-primary">Create New Submission</a>
             </div>
         </div>
         
@@ -420,9 +420,9 @@
             // Edit button
             document.getElementById('editBtn').addEventListener('click', () => {
                 if (currentSubmission) {
-                    // Store submission data and redirect to main form for editing
+                    // Store submission data and redirect to form page for editing
                     sessionStorage.setItem('editingSubmission', JSON.stringify(currentSubmission));
-                    window.location.href = 'index.html';
+                    window.location.href = 'form.html';
                 }
             });
             
