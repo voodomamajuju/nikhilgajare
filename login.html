@@ -41,9 +41,22 @@
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
     import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.public.js";
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    console.log("✅ Supabase client initialized");
+    // Initialize Supabase with error handling
+    let supabase;
+    try {
+      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+        throw new Error('Supabase configuration is missing');
+      }
+      supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      console.log("✅ Supabase client initialized");
+      console.log("✅ Supabase URL:", SUPABASE_URL ? "Loaded" : "Missing");
+      console.log("✅ Supabase Key:", SUPABASE_ANON_KEY ? "Loaded" : "Missing");
+    } catch (error) {
+      console.error('❌ Failed to initialize Supabase:', error);
+      document.getElementById('status').textContent = 'Error: Failed to load authentication. Please refresh the page.';
+      document.getElementById('status').className = 'status-message error';
+      document.getElementById('status').style.display = 'block';
+    }
     console.log('supabase auth API:', 
       !!supabase?.auth?.signInWithPassword ? 'v2' : 
       !!supabase?.auth?.signIn ? 'v1' : 
@@ -55,6 +68,10 @@
     sessionStorage.removeItem('userRole');
 
     async function redirectToApp() {
+      if (!supabase) {
+        console.error('❌ Cannot redirect - Supabase not initialized');
+        return;
+      }
       // For regular users, check if they have an existing submission
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -106,7 +123,7 @@
       console.log('📧 Email verification callback detected:', { type, token: !!token });
       
       // If there's a token, exchange it for a session
-      if (token) {
+      if (token && supabase) {
         try {
           const { data, error } = await supabase.auth.getSession();
           if (error) {
@@ -132,7 +149,15 @@
     }
     
     // Check if user is already logged in
-    const { data: { session } } = await supabase.auth.getSession();
+    let session = null;
+    if (supabase) {
+      try {
+        const { data } = await supabase.auth.getSession();
+        session = data?.session;
+      } catch (err) {
+        console.error('Error getting session:', err);
+      }
+    }
     const shouldAuto = urlParams.get('auto') === '1'; // only auto-redirect when explicitly requested
     if (session) {
       // Show logout button for signed-in users
@@ -160,7 +185,8 @@
 
 
     // Listen for auth changes
-    supabase.auth.onAuthStateChange(async (event, session) => {
+    if (supabase) {
+      supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔍 Auth state changed:', event, session?.user?.email);
       if (event === 'SIGNED_IN' && session) {
         console.log('✅ User signed in, redirecting...');
@@ -182,27 +208,55 @@
         document.getElementById('logoutBtn').style.display = 'none';
       }
     });
+    } else {
+      console.error('❌ Cannot set up auth state listener - Supabase not initialized');
+    }
 
 
-    // Google OAuth
-    document.getElementById("googleSignIn").addEventListener("click", async () => {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          // Return with auto=1 to enable single-shot auto-redirect after OAuth only
-          redirectTo: window.location.origin + "/login.html?auto=1"
+    // Google OAuth - ensure button exists before attaching listener
+    const googleSignInBtn = document.getElementById("googleSignIn");
+    if (googleSignInBtn) {
+      googleSignInBtn.addEventListener("click", async () => {
+        if (!supabase) {
+          showStatus("Error: Authentication not available. Please refresh the page.", true);
+          return;
+        }
+        try {
+          console.log('🔵 Google sign-in clicked');
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: {
+              // Return with auto=1 to enable single-shot auto-redirect after OAuth only
+              redirectTo: window.location.origin + "/login.html?auto=1"
+            }
+          });
+          if (error) {
+            console.error('Google sign-in error:', error);
+            showStatus("Google sign-in failed: " + error.message, true);
+          } else {
+            console.log('✅ Google sign-in initiated');
+          }
+        } catch (err) {
+          console.error('Google sign-in exception:', err);
+          showStatus("Google sign-in failed: " + err.message, true);
         }
       });
-      if (error) {
-        showStatus("Google sign-in failed: " + error.message, true);
-      }
-    });
+      console.log('✅ Google sign-in button event listener attached');
+    } else {
+      console.error('❌ Google sign-in button not found!');
+    }
 
 
     // Logout button
-    document.getElementById("logoutBtn").addEventListener("click", async () => {
-      try {
-        await supabase.auth.signOut();
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", async () => {
+        if (!supabase) {
+          showStatus("Error: Authentication not available.", true);
+          return;
+        }
+        try {
+          await supabase.auth.signOut();
         sessionStorage.clear();
         localStorage.clear();
         showStatus("Logged out successfully! Session cleared.", false);
@@ -213,6 +267,7 @@
         showStatus("Logout failed: " + error.message, true);
       }
     });
+    }
 
     // Sign up/Sign in toggle - ensure it's attached after DOM is ready
     const signUpToggleBtn = document.getElementById("signUpToggle");
@@ -369,8 +424,12 @@
       return { valid: true, message: 'Email looks good!' };
     }
 
-    // Email/Password authentication
-    document.getElementById("emailForm").addEventListener("submit", async (e) => {
+    // Email/Password authentication - ensure form exists
+    const emailForm = document.getElementById("emailForm");
+    if (!emailForm) {
+      console.error('❌ Email form not found!');
+    } else {
+      emailForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
@@ -391,6 +450,11 @@
         submitBtnText 
       });
 
+      if (!supabase) {
+        showStatus("Error: Authentication not available. Please refresh the page.", true);
+        return;
+      }
+      
       try {
         if (isSignUp) {
           // Sign up with email confirmation required
@@ -442,6 +506,26 @@
         showStatus("Authentication failed: " + error.message, true);
       }
     });
+    console.log('✅ Email form event listener attached');
+    }
+    
+    // If Supabase failed to initialize, show error
+    if (!supabase) {
+      console.error('❌ Cannot proceed - Supabase not initialized');
+      // Still allow form to show, but disable functionality
+      const emailForm = document.getElementById("emailForm");
+      if (emailForm) {
+        emailForm.style.opacity = '0.5';
+        emailForm.style.pointerEvents = 'none';
+      }
+      const googleBtn = document.getElementById("googleSignIn");
+      if (googleBtn) {
+        googleBtn.style.opacity = '0.5';
+        googleBtn.style.pointerEvents = 'none';
+      }
+    } else {
+      console.log('✅ All systems ready - authentication available');
+    }
   </script>
 </body>
 </html>
