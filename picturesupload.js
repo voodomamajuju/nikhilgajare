@@ -32,82 +32,90 @@ function makeSafeFilename(name) {
 function validateEmail(email) {
   if (!email) return { valid: false, message: 'Email is required' };
   
+  email = email.trim();
+  
   // Basic format validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailRegex = /^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?@[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?\.[a-zA-Z]{2,}$/;
   if (!emailRegex.test(email)) {
     return { valid: false, message: 'Please enter a valid email format' };
   }
   
-  // Whitelist of popular, legitimate email domains
-  const allowedDomains = [
-    // Major email providers
-    'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'live.com',
-    'aol.com', 'icloud.com', 'me.com', 'mac.com', 'protonmail.com',
-    'yandex.com', 'mail.ru', 'zoho.com', 'fastmail.com',
-    
-    // Educational institutions (.edu domains)
-    'harvard.edu', 'mit.edu', 'stanford.edu', 'berkeley.edu', 'ucla.edu',
-    'nyu.edu', 'columbia.edu', 'cornell.edu', 'princeton.edu', 'yale.edu',
-    'duke.edu', 'northwestern.edu', 'upenn.edu', 'brown.edu', 'dartmouth.edu',
-    'vanderbilt.edu', 'rice.edu', 'wustl.edu', 'emory.edu', 'georgetown.edu',
-    'carnegie.edu', 'cmu.edu', 'jhu.edu', 'usc.edu', 'ucsd.edu',
-    'ucsb.edu', 'ucdavis.edu', 'uci.edu', 'ucsc.edu', 'ucr.edu',
-    'caltech.edu', 'gatech.edu', 'umich.edu', 'illinois.edu', 'purdue.edu',
-    'indiana.edu', 'wisconsin.edu', 'minnesota.edu', 'ohio.edu', 'psu.edu',
-    'rutgers.edu', 'umd.edu', 'virginia.edu', 'vt.edu', 'ncsu.edu',
-    'unc.edu', 'duke.edu', 'wfu.edu', 'clemson.edu', 'sc.edu',
-    'uga.edu', 'fsu.edu', 'ufl.edu', 'miami.edu', 'fiu.edu',
-    'ut.edu', 'tamu.edu', 'utdallas.edu', 'uh.edu', 'rice.edu',
-    'baylor.edu', 'tcu.edu', 'smu.edu', 'ttu.edu', 'utep.edu',
-    'asu.edu', 'uofa.edu', 'nau.edu', 'unlv.edu', 'unr.edu',
-    'ucolorado.edu', 'csu.edu', 'du.edu', 'colorado.edu', 'utah.edu',
-    'byu.edu', 'usu.edu', 'wsu.edu', 'uw.edu', 'oregon.edu',
-    'osu.edu', 'pdx.edu', 'uoregon.edu', 'oregonstate.edu', 'alaska.edu',
-    'hawaii.edu', 'manoa.edu', 'hilo.edu', 'westoahu.edu', 'kapi.edu',
-    
-    // International domains
-    'gmail.co.uk', 'yahoo.co.uk', 'hotmail.co.uk', 'outlook.co.uk',
-    'gmail.ca', 'yahoo.ca', 'hotmail.ca', 'outlook.ca',
-    'gmail.com.au', 'yahoo.com.au', 'hotmail.com.au', 'outlook.com.au',
-    'gmail.de', 'yahoo.de', 'hotmail.de', 'outlook.de',
-    'gmail.fr', 'yahoo.fr', 'hotmail.fr', 'outlook.fr',
-    'gmail.it', 'yahoo.it', 'hotmail.it', 'outlook.it',
-    'gmail.es', 'yahoo.es', 'hotmail.es', 'outlook.es',
-    'gmail.in', 'yahoo.in', 'hotmail.in', 'outlook.in',
-    'gmail.co.in', 'yahoo.co.in', 'hotmail.co.in', 'outlook.co.in',
-    'rediffmail.com', 'sify.com', 'indiatimes.com', 'vsnl.com',
-    'gmail.co.jp', 'yahoo.co.jp', 'hotmail.co.jp', 'outlook.co.jp',
-    'gmail.co.kr', 'yahoo.co.kr', 'hotmail.co.kr', 'outlook.co.kr',
-    'gmail.com.br', 'yahoo.com.br', 'hotmail.com.br', 'outlook.com.br',
-    'gmail.com.mx', 'yahoo.com.mx', 'hotmail.com.mx', 'outlook.com.mx',
-    
-    // Corporate domains (common ones)
-    'microsoft.com', 'apple.com', 'google.com', 'amazon.com', 'facebook.com',
-    'twitter.com', 'linkedin.com', 'salesforce.com', 'oracle.com', 'ibm.com',
-    'intel.com', 'nvidia.com', 'adobe.com', 'cisco.com', 'vmware.com',
-    'netflix.com', 'spotify.com', 'uber.com', 'airbnb.com', 'tesla.com',
-    'spacex.com', 'paypal.com', 'stripe.com', 'square.com', 'shopify.com',
-    'dropbox.com', 'box.com', 'slack.com', 'zoom.us', 'teams.microsoft.com',
-    'github.com', 'gitlab.com', 'bitbucket.org', 'atlassian.com', 'jira.com',
-    'trello.com', 'asana.com', 'notion.so', 'figma.com', 'canva.com',
-    'mailchimp.com', 'hubspot.com', 'zendesk.com', 'intercom.com', 'freshworks.com',
-    'twilio.com', 'sendgrid.com', 'mailgun.com', 'postmark.com', 'mandrill.com',
-    
-    // Government domains
-    'gov.in', 'gov.uk', 'gov.ca', 'gov.au', 'gov.de', 'gov.fr', 'gov.it',
-    'gov.es', 'gov.jp', 'gov.kr', 'gov.br', 'gov.mx', 'gov.us', 'gov.com',
-    
-    // Non-profit organizations
-    'org', 'ngo', 'foundation', 'charity', 'un.org', 'who.int', 'unicef.org',
-    'redcross.org', 'doctorswithoutborders.org', 'amnesty.org', 'greenpeace.org',
-    'wwf.org', 'nature.org', 'sierraclub.org', 'audubon.org', 'nrdc.org'
+  const [localPart, domain] = email.split('@');
+  if (!localPart || !domain) {
+    return { valid: false, message: 'Invalid email format' };
+  }
+  
+  // Filter out inappropriate content in email addresses
+  const inappropriateWords = [
+    // Profanity and offensive terms
+    'fuck', 'fuckboy', 'fuckgirl', 'fucking', 'shit', 'asshole', 'bitch', 'bastard',
+    'damn', 'hell', 'crap', 'piss', 'dick', 'cock', 'pussy', 'whore', 'slut',
+    'nigger', 'nigga', 'retard', 'gay', 'lesbian', 'homo', 'fag', 'tranny',
+    'kill', 'murder', 'death', 'suicide', 'bomb', 'terrorist', 'hack', 'scam',
+    'spam', 'fake', 'test123', 'temp', 'temporary', 'throwaway', 'trash',
+    'iamyourdad', 'iamyourmom', 'yourmom', 'yourdad', 'yourmum', 'yourfather',
+    'lavdalasan', 'bullshit', 'stupid', 'idiot', 'moron', 'dumb', 'loser',
+    'hate', 'stupid', 'ugly', 'fat', 'skinny', 'dumbass', 'ass', 'butt',
+    'sex', 'porn', 'xxx', 'nude', 'naked', 'horny', 'sexy', 'hot', 'boobs',
+    'drug', 'weed', 'cocaine', 'heroin', 'alcohol', 'drunk', 'high',
+    'violence', 'gun', 'weapon', 'knife', 'blood', 'gore', 'torture'
   ];
   
-  const domain = email.split('@')[1]?.toLowerCase();
+  // Blacklist of known temporary/fake email services
+  const fakeEmailDomains = [
+    'tempmail.com', 'tempmail.net', 'tempmail.org', 'tempmail.co',
+    '10minutemail.com', '10minutemail.net', '10minutemail.org',
+    'guerrillamail.com', 'guerrillamail.net', 'guerrillamail.org',
+    'mailinator.com', 'mailinator.net', 'mailinator.org',
+    'throwaway.email', 'throwawaymail.com', 'throwawaymail.net',
+    'fakemail.com', 'fakemail.net', 'fakemail.org',
+    'temp-mail.org', 'temp-mail.com', 'temp-mail.net',
+    'mohmal.com', 'mohmal.net', 'mohmal.org',
+    'yopmail.com', 'yopmail.net', 'yopmail.org',
+    'getnada.com', 'getnada.net', 'getnada.org',
+    'maildrop.cc', 'maildrop.com', 'maildrop.net',
+    'sharklasers.com', 'sharklasers.net', 'sharklasers.org',
+    'trashmail.com', 'trashmail.net', 'trashmail.org',
+    'dispostable.com', 'dispostable.net', 'dispostable.org',
+    'meltmail.com', 'meltmail.net', 'meltmail.org',
+    'mintemail.com', 'mintemail.net', 'mintemail.org',
+    'mytrashmail.com', 'mytrashmail.net', 'mytrashmail.org',
+    'tempail.com', 'tempail.net', 'tempail.org',
+    'emailondeck.com', 'emailondeck.net', 'emailondeck.org',
+    'mailcatch.com', 'mailcatch.net', 'mailcatch.org',
+    'spamgourmet.com', 'spamgourmet.net', 'spamgourmet.org',
+    'test.com', 'test.net', 'test.org', 'test123.com', 'test123.net',
+    'example.com', 'example.net', 'example.org',
+    'fake.com', 'fake.net', 'fake.org', 'fakemail.com',
+    'dummy.com', 'dummy.net', 'dummy.org',
+    'invalid.com', 'invalid.net', 'invalid.org'
+  ];
   
-  // Check if domain is in whitelist
-  if (!allowedDomains.includes(domain)) {
-    return { valid: false, message: 'Invalid email ID' };
+  const emailLower = email.toLowerCase();
+  const localPartLower = localPart.toLowerCase();
+  const domainLower = domain.toLowerCase();
+  
+  // Check for fake/temporary email domains
+  if (fakeEmailDomains.includes(domainLower)) {
+    return { valid: false, message: 'Temporary or fake email addresses are not allowed. Please use a real email address.' };
+  }
+  
+  // Check for inappropriate words in local part or domain
+  for (const word of inappropriateWords) {
+    if (localPartLower.includes(word) || domainLower.includes(word)) {
+      return { valid: false, message: 'Email contains inappropriate content. Please use a professional email address.' };
+    }
+  }
+  
+  // Check for suspicious patterns (like random strings, numbers only, etc.)
+  // Reject if local part is just numbers or very short random strings
+  if (/^[0-9]+$/.test(localPart) && localPart.length < 5) {
+    return { valid: false, message: 'Email appears to be invalid. Please use a real email address.' };
+  }
+  
+  // Reject if local part is too short (likely fake)
+  if (localPart.length < 3) {
+    return { valid: false, message: 'Email address is too short. Please use a valid email address.' };
   }
   
   return { valid: true, message: 'Email looks good!' };

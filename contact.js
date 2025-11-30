@@ -64,24 +64,75 @@ function validateEmail(email) {
   
   // Filter out inappropriate content in email addresses
   const inappropriateWords = [
+    // Profanity and offensive terms
     'fuck', 'fuckboy', 'fuckgirl', 'fucking', 'shit', 'asshole', 'bitch', 'bastard',
     'damn', 'hell', 'crap', 'piss', 'dick', 'cock', 'pussy', 'whore', 'slut',
     'nigger', 'nigga', 'retard', 'gay', 'lesbian', 'homo', 'fag', 'tranny',
     'kill', 'murder', 'death', 'suicide', 'bomb', 'terrorist', 'hack', 'scam',
     'spam', 'fake', 'test123', 'temp', 'temporary', 'throwaway', 'trash',
     'iamyourdad', 'iamyourmom', 'yourmom', 'yourdad', 'yourmum', 'yourfather',
-    'lavdalasan', 'bullshit', 'crap', 'stupid', 'idiot', 'moron', 'dumb'
+    'lavdalasan', 'bullshit', 'stupid', 'idiot', 'moron', 'dumb', 'loser',
+    'hate', 'stupid', 'ugly', 'fat', 'skinny', 'dumbass', 'ass', 'butt',
+    'sex', 'porn', 'xxx', 'nude', 'naked', 'horny', 'sexy', 'hot', 'boobs',
+    'drug', 'weed', 'cocaine', 'heroin', 'alcohol', 'drunk', 'high',
+    'violence', 'gun', 'weapon', 'knife', 'blood', 'gore', 'torture'
+  ];
+  
+  // Blacklist of known temporary/fake email services
+  const fakeEmailDomains = [
+    'tempmail.com', 'tempmail.net', 'tempmail.org', 'tempmail.co',
+    '10minutemail.com', '10minutemail.net', '10minutemail.org',
+    'guerrillamail.com', 'guerrillamail.net', 'guerrillamail.org',
+    'mailinator.com', 'mailinator.net', 'mailinator.org',
+    'throwaway.email', 'throwawaymail.com', 'throwawaymail.net',
+    'fakemail.com', 'fakemail.net', 'fakemail.org',
+    'temp-mail.org', 'temp-mail.com', 'temp-mail.net',
+    'mohmal.com', 'mohmal.net', 'mohmal.org',
+    'yopmail.com', 'yopmail.net', 'yopmail.org',
+    'getnada.com', 'getnada.net', 'getnada.org',
+    'maildrop.cc', 'maildrop.com', 'maildrop.net',
+    'sharklasers.com', 'sharklasers.net', 'sharklasers.org',
+    'trashmail.com', 'trashmail.net', 'trashmail.org',
+    'dispostable.com', 'dispostable.net', 'dispostable.org',
+    'meltmail.com', 'meltmail.net', 'meltmail.org',
+    'mintemail.com', 'mintemail.net', 'mintemail.org',
+    'mytrashmail.com', 'mytrashmail.net', 'mytrashmail.org',
+    'tempail.com', 'tempail.net', 'tempail.org',
+    'emailondeck.com', 'emailondeck.net', 'emailondeck.org',
+    'mailcatch.com', 'mailcatch.net', 'mailcatch.org',
+    'spamgourmet.com', 'spamgourmet.net', 'spamgourmet.org',
+    'test.com', 'test.net', 'test.org', 'test123.com', 'test123.net',
+    'example.com', 'example.net', 'example.org',
+    'fake.com', 'fake.net', 'fake.org', 'fakemail.com',
+    'dummy.com', 'dummy.net', 'dummy.org',
+    'invalid.com', 'invalid.net', 'invalid.org'
   ];
   
   const emailLower = email.toLowerCase();
   const localPartLower = localPart.toLowerCase();
   const domainLower = domain.toLowerCase();
   
+  // Check for fake/temporary email domains
+  if (fakeEmailDomains.includes(domainLower)) {
+    return { valid: false, message: 'Temporary or fake email addresses are not allowed. Please use a real email address.' };
+  }
+  
   // Check for inappropriate words in local part or domain
   for (const word of inappropriateWords) {
     if (localPartLower.includes(word) || domainLower.includes(word)) {
       return { valid: false, message: 'Email contains inappropriate content. Please use a professional email address.' };
     }
+  }
+  
+  // Check for suspicious patterns (like random strings, numbers only, etc.)
+  // Reject if local part is just numbers or very short random strings
+  if (/^[0-9]+$/.test(localPart) && localPart.length < 5) {
+    return { valid: false, message: 'Email appears to be invalid. Please use a real email address.' };
+  }
+  
+  // Reject if local part is too short (likely fake)
+  if (localPart.length < 3) {
+    return { valid: false, message: 'Email address is too short. Please use a valid email address.' };
   }
   
   // Email verification is handled by Supabase, so we just validate format
