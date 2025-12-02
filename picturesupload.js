@@ -464,6 +464,12 @@ async function updateSubmission() {
   const formData = new FormData(document.getElementById('editForm'));
   const submission = window.currentSubmission;
   
+  if (!submission || !submission.id) {
+    throw new Error('No submission found to update');
+  }
+  
+  console.log('🔄 Updating submission:', submission.id);
+  
   // Prepare update data
   const updateData = {
     name: formData.get('name'),
@@ -483,8 +489,17 @@ async function updateSubmission() {
   };
   
   // Handle photo updates
-  const photoFiles = Array.from(document.getElementById('edit_photos').files);
+  const photoInput = document.getElementById('edit_photos');
+  if (!photoInput) {
+    console.error('❌ Photo input element not found!');
+    throw new Error('Photo input element not found');
+  }
+  
+  const photoFiles = Array.from(photoInput.files);
   let photoPaths = [...(submission.photo_paths || [])];
+  
+  console.log('📸 Photo files selected:', photoFiles.length);
+  console.log('📸 Current photo paths:', photoPaths.length);
   
   if (photoFiles.length > 0) {
     // Extract the folder path from existing photos to keep the same path structure
@@ -564,16 +579,49 @@ function cancelEdit() {
   }
 }
 
-// Remove photo function
-function removePhoto(index) {
+// Remove photo function - make it global and actually delete from storage
+window.removePhoto = async function(index) {
   const submission = window.currentSubmission;
-  if (!submission || !submission.photo_paths) return;
+  if (!submission || !submission.photo_paths || !submission.photo_paths[index]) return;
   
-  if (confirm('Are you sure you want to remove this photo?')) {
-    submission.photo_paths.splice(index, 1);
-    showEditForm(); // Refresh the form
+  if (!confirm('Are you sure you want to remove this photo?')) return;
+  
+  const supabaseClient = getSupabaseClient();
+  const photoPath = submission.photo_paths[index];
+  
+  // Delete from storage if Supabase client is available
+  if (supabaseClient && photoPath) {
+    try {
+      // Use the photo path as-is (it should already be the correct storage path)
+      const filePath = photoPath;
+      console.log('🗑️ Attempting to delete photo from storage:', filePath);
+      
+      const { error } = await supabaseClient.storage.from(BUCKET_NAME).remove([filePath]);
+      
+      if (error) {
+        console.error('❌ Error deleting photo from storage:', error);
+        // Continue anyway - remove from array even if storage delete fails
+        // (the file might already be deleted or path might be incorrect)
+      } else {
+        console.log('✅ Photo deleted from storage:', filePath);
+      }
+    } catch (err) {
+      console.error('❌ Exception deleting photo from storage:', err);
+      // Continue anyway - remove from array even if storage delete fails
+    }
   }
-}
+  
+  // Remove from array
+  submission.photo_paths.splice(index, 1);
+  
+  // Update the current submission object
+  window.currentSubmission = submission;
+  
+  // Refresh the form to show updated photos
+  showEditForm();
+  
+  console.log('✅ Photo removed from submission');
+};
 
 // main logic: attach UI handlers + submit handler
 async function init() {
