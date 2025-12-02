@@ -70,7 +70,6 @@ function attachHandlers() {
   (function autoRevealIfSaved() {
     const saved = getSavedFormData();
     const isEditMode = sessionStorage.getItem('editingSubmission') || sessionStorage.getItem('editingSubmissionId');
-    const editModeLink = document.getElementById('editModeUploadLink');
     
     // Show upload link if measurements exist
     const hasMeasurements = saved && [saved.chest, saved.bust, saved.waist, saved.hips]
@@ -80,10 +79,10 @@ function attachHandlers() {
       uploadLink.style.display = 'inline-block';
     }
     
-    // If in edit mode, show the edit mode upload link immediately
-    if (isEditMode && editModeLink) {
-      editModeLink.style.display = 'inline-block';
-      console.log('📝 Edit mode detected - showing direct upload link');
+    // If in edit mode, also show upload link immediately
+    if (isEditMode && uploadLink) {
+      uploadLink.style.display = 'inline-block';
+      console.log('📝 Edit mode detected - showing upload link');
     }
     
     // If in edit mode, also pre-fill the form with existing submission data

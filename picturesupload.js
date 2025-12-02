@@ -487,16 +487,34 @@ async function updateSubmission() {
   let photoPaths = [...(submission.photo_paths || [])];
   
   if (photoFiles.length > 0) {
-    // Create profile-specific folder using person's name
-    const safeFolderName = submission.name 
-      ? submission.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase()
-      : `profile_${submission.id}`;
-    const profileFolder = `submissions/${safeFolderName}`;
+    // Extract the folder path from existing photos to keep the same path structure
+    let profileFolder = null;
+    if (submission.photo_paths && submission.photo_paths.length > 0) {
+      // Get the folder path from the first existing photo
+      const firstPhotoPath = submission.photo_paths[0];
+      const pathParts = firstPhotoPath.split('/');
+      if (pathParts.length > 1) {
+        // Extract folder path (everything except the filename)
+        profileFolder = pathParts.slice(0, -1).join('/');
+        console.log('📁 Using existing folder path:', profileFolder);
+      }
+    }
     
-    // Upload new photos
+    // If no existing photos, create new folder (shouldn't happen in edit mode, but fallback)
+    if (!profileFolder) {
+      const safeFolderName = submission.name 
+        ? submission.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase()
+        : `profile_${submission.id}`;
+      profileFolder = `submissions/${safeFolderName}_${Date.now().toString().slice(-6)}`;
+      console.log('📁 Creating new folder path:', profileFolder);
+    }
+    
+    // Upload new photos to the same folder
     for (const file of photoFiles) {
       const safeName = makeSafeFilename(file.name);
       const key = `${profileFolder}/${Date.now()}_${Math.random().toString(36).slice(2,8)}_${safeName}`;
+      
+      console.log('⬆️ Uploading new photo to existing folder:', key);
       
       // Compress image before upload
       const compressedFile = await compressImage(file);
@@ -509,6 +527,7 @@ async function updateSubmission() {
       if (error) throw new Error('Photo upload failed: ' + error.message);
       
       photoPaths.push(data.path);
+      console.log('✅ Photo uploaded successfully:', data.path);
     }
   }
   
