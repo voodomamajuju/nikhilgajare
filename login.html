@@ -180,14 +180,19 @@
           console.error('Error getting session:', err);
         }
       }
-      const shouldAuto = urlParams.get('auto') === '1'; // only auto-redirect when explicitly requested
+      const shouldAuto = urlParams.get('auto') === '1'; // auto-redirect after OAuth
+      const fromThankYou = urlParams.get('from') === 'thankyou';
+      
       if (session) {
         // Show logout button for signed-in users
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) logoutBtn.style.display = 'block';
         
-        // Only auto-redirect after explicit flows (e.g., OAuth), and not from thank you page
-        if (shouldAuto && urlParams.get('from') !== 'thankyou') {
+        // Auto-redirect in these cases:
+        // 1. After OAuth sign-in (shouldAuto = true)
+        // 2. User is already signed in and visits login page (not from thank you page)
+        // Don't redirect if coming from thank you page (user just submitted)
+        if (shouldAuto || (!fromThankYou && !urlParams.get('stay'))) {
           // Check if this is an admin by email
           const userEmail = session.user.email;
           console.log('🔍 Checking user email:', userEmail);
@@ -202,7 +207,7 @@
             await redirectToApp();
           }
         } else {
-          console.log('ℹ️ Session present, staying on login (no auto param).');
+          console.log('ℹ️ Session present, staying on login (from thankyou or explicit stay).');
         }
       }
 
