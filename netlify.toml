@@ -12,6 +12,17 @@
   # Disable secrets scanning for config files (anon key is safe to be public)
   SECRETS_SCAN_OMIT_PATHS = "config.js,config.public.js"
 
+# Force HTTPS redirect (important for mobile browsers)
+[[redirects]]
+  from = "http://ngcouturemodels.in/*"
+  to = "https://ngcouturemodels.in/:splat"
+  status = 301
+
+[[redirects]]
+  from = "http://www.ngcouturemodels.in/*"
+  to = "https://ngcouturemodels.in/:splat"
+  status = 301
+
 # Redirect root to login page
 [[redirects]]
   from = "/"
@@ -26,6 +37,7 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
 
 # Cache static assets
 [[headers]]
