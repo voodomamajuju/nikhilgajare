@@ -8,6 +8,50 @@
     {
       "source": "/",
       "destination": "/login.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/login.html"
+    },
+    {
+      "source": "/form",
+      "destination": "/form.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/models",
+      "destination": "/models.html"
+    },
+    {
+      "source": "/model-details",
+      "destination": "/modeldetails.html"
+    },
+    {
+      "source": "/submission-details",
+      "destination": "/submission-details.html"
+    },
+    {
+      "source": "/thank-you",
+      "destination": "/thankyou.html"
+    },
+    {
+      "source": "/instructions",
+      "destination": "/instructions.html"
+    },
+    {
+      "source": "/measurements",
+      "destination": "/measurements.html"
+    },
+    {
+      "source": "/upload-pictures",
+      "destination": "/picturesupload.html"
+    },
+    {
+      "source": "/user-access",
+      "destination": "/user-access.html"
     }
   ],
   "redirects": [
